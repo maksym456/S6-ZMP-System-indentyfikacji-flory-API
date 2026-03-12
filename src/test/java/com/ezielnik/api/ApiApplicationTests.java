@@ -1,10 +1,10 @@
-package com.example.s6zmpsystemindentyfikacjifloryapi;
+package com.ezielnik.api;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class S6ZmpSystemIndentyfikacjiFloryApiApplicationTests {
+class ApiApplicationTests {
 
     @Test
     void contextLoads() {
