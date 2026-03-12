@@ -28,6 +28,7 @@
 | FLY-20 | Użytkownik może oglądać zielniki i opisy pod roślinami znajomych i publicznych i porównywać je z własnym zielnikiem | *   | ✓   |        |         |
 | FLY-21 | Użytkownik może się wylogować.                                                                                      |     | ✓   | ✓      |         |
 | FLY-22 | System obsługuje język polski i angielski.                                                                          | *   | ✓   | ✓      | ✓       |
+
 Repozytoria członków grupy:  
 [API: Java + SpringBoot + Maven + PostgreSQL, Maksym Wilk 43900](https://github.com/maksym456/S6-ZMP-System-indentyfikacji-flory-API)
 
