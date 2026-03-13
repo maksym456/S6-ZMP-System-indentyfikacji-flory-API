@@ -1,13 +1,24 @@
 package com.ezielnik.api.user;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequestMapping("/users")
 public class UserController {
 
-    @GetMapping("/users/hello")
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
+    @GetMapping("/hello")
     public String hello() {
         return "User API works";
+    }
+
+    @PostMapping("/register")
+    public User register(@RequestBody RegisterRequest request) {
+        return userService.register(request);
     }
 }

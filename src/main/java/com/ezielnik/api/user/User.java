@@ -21,6 +21,10 @@ public class User {
     private String email;
 
     @NotBlank
+    @Column(name = "username", nullable = false, unique = true)
+    private String username;
+
+    @NotBlank
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
@@ -69,6 +73,13 @@ public class User {
         this.email = email == null ? null : email.trim().toLowerCase();
     }
 
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
     public String getPasswordHash() {
         return passwordHash;
     }
@@ -89,8 +100,8 @@ public class User {
         return is_verified;
     }
 
-    public void setVerified(boolean verified) {
-        this.is_verified = verified;
+    public void setVerified(boolean is_verified) {
+        this.is_verified = is_verified;
     }
 
     public boolean isAdmin() {
