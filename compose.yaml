@@ -1,9 +1,20 @@
 services:
   postgres:
-    image: 'postgres:latest'
+    image: postgres:latest
     environment:
-      - 'POSTGRES_DB=postgres'
-      - 'POSTGRES_PASSWORD=postgres'
-      - 'POSTGRES_USER=postgres'
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+  app:
+    build: .
     ports:
-      - '5432'
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/postgres
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      JWT_SECRET: ya1ArpCqjXfgXT+mMGKJAMec8fDb23UBkYZfTTU05I4=
+      JWT_EXPIRATION_MS: 604800000
+    depends_on:
+      - postgres

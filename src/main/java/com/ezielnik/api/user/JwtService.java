@@ -16,6 +16,19 @@ public class JwtService {
         this.jwtProperties = jwtProperties;
     }
 
+    public String extractUserId(String token) {
+        SecretKey key = Keys.hmacShaKeyFor(
+                jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8)
+        );
+
+        return Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getSubject();
+    }
+    
     public String generateToken(User user) {
         SecretKey key = Keys.hmacShaKeyFor(
                 jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8)

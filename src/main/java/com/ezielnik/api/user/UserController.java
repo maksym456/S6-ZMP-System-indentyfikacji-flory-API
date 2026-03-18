@@ -25,4 +25,10 @@ public class UserController {
         String token = jwtService.generateToken(user);
         return new LoginResponse(user, token);
     }
+    @GetMapping("/me")
+    public UserResponse me(@RequestHeader("Authorization") String authorizationHeader) {
+        String token = authorizationHeader.replace("Bearer ", "");
+        User user = userService.me(token);
+        return new UserResponse(user);
+    }
 }

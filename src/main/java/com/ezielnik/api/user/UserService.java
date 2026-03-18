@@ -4,16 +4,21 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import java.util.UUID;
 
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository,
+                       PasswordEncoder passwordEncoder,
+                       JwtService jwtService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     public RegisterResponse register(RegisterRequest request) {
@@ -54,5 +59,11 @@ public class UserService {
         }
 
         return user;
+    }
+    public User me(String token) {
+        String userId = jwtService.extractUserId(token);
+
+        return userRepository.findById(UUID.fromString(userId))
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 }
