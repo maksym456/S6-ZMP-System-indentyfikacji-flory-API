@@ -6,14 +6,23 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/users")
 public class UserController {
 
+    private final JwtService jwtService;
     private final UserService userService;
 
-    public UserController(UserService userService) {
+    public UserController(JwtService jwtService, UserService userService) {
+        this.jwtService = jwtService;
         this.userService = userService;
     }
 
     @PostMapping("/register")
-    public User register(@RequestBody RegisterRequest request) {
+    public RegisterResponse register(@RequestBody RegisterRequest request) {
         return userService.register(request);
+    }
+
+    @PostMapping("/login")
+    public LoginResponse login(@RequestBody LoginRequest request) {
+        User user = userService.login(request);
+        String token = jwtService.generateToken(user);
+        return new LoginResponse(user, token);
     }
 }
