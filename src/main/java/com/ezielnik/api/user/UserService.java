@@ -60,10 +60,8 @@ public class UserService {
 
         return user;
     }
-    public User me(String token) {
-        String userId = jwtService.extractUserId(token);
-
-        return userRepository.findById(UUID.fromString(userId))
+    public User me(UUID userId) {
+        return userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 }

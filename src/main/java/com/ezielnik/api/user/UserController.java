@@ -2,6 +2,11 @@ package com.ezielnik.api.user;
 
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/users")
 public class UserController {
@@ -26,9 +31,8 @@ public class UserController {
         return new LoginResponse(user, token);
     }
     @GetMapping("/me")
-    public UserResponse me(@RequestHeader("Authorization") String authorizationHeader) {
-        String token = authorizationHeader.replace("Bearer ", "");
-        User user = userService.me(token);
+    public UserResponse me(@AuthenticationPrincipal Jwt jwt) {
+        User user = userService.me(UUID.fromString(jwt.getSubject()));
         return new UserResponse(user);
     }
 }
