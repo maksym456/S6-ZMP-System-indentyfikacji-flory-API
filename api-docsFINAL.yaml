@@ -1,0 +1,2656 @@
+
+openapi: 3.1.0
+info:
+  title: Virtual Plant Collection API
+  version: 1.0.0
+  summary: REST API for mobile, web, and desktop apps in the virtual plant collection system.
+
+servers:
+  - url: http://localhost:8080
+    description: Local development
+
+tags:
+  - name: users
+    description: Registration, login, profile, password reset, and user views.
+  - name: collections
+    description: User plant collections.
+  - name: plants
+    description: Plants and plant photos inside collections.
+  - name: friends
+    description: Friends and friend requests.
+  - name: social
+    description: Public gallery, rankings, and compare views.
+  - name: notifications
+    description: User notifications and push token registration.
+  - name: admin
+    description: Admin tools.
+
+security:
+  - bearerAuth: []
+
+paths:
+  /users/register:
+    post:
+      tags: [users]
+      summary: Register a new user
+      operationId: register
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            examples:
+              basic:
+                value:
+                  username: jan_kowalski
+                  email: jan@example.com
+                  password: StrongPassw0rd!
+      responses:
+        '200':
+          description: User registered.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Username or email already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /users/login:
+    post:
+      tags: [users]
+      summary: Login and get JWT
+      operationId: login
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '423':
+          description: User is blocked.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /users/refresh:
+    post:
+      tags: [users]
+      summary: Refresh access token
+      operationId: refreshToken
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: New tokens returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/logout:
+    post:
+      tags: [users]
+      summary: Logout user
+      operationId: logout
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+      responses:
+        '200':
+          description: Logout success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/password/forgot:
+    post:
+      tags: [users]
+      summary: Start password reset
+      operationId: forgotPassword
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+      responses:
+        '200':
+          description: Reset request accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  /users/password/reset:
+    post:
+      tags: [users]
+      summary: Reset password
+      operationId: resetPassword
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '200':
+          description: Password changed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '410':
+          description: Reset token expired or already used.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /users/me:
+    get:
+      tags: [users]
+      summary: Get current user
+      operationId: me
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Current user data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    patch:
+      tags: [users]
+      summary: Update current user
+      operationId: updateMe
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: User updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Username already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /users/search:
+    get:
+      tags: [users]
+      summary: Search users
+      operationId: searchUsers
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - name: query
+          in: query
+          required: true
+          description: Username or part of username.
+          schema:
+            type: string
+            minLength: 1
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Users found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSearchResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/ranking:
+    get:
+      tags: [social]
+      summary: Get user ranking
+      operationId: getUserRanking
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - name: sortBy
+          in: query
+          description: Ranking mode.
+          schema:
+            type: string
+            enum: [uniqueSpecies, totalPlants, totalCollections]
+            default: uniqueSpecies
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Ranking data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRankingResponse'
+
+  /users/{userId}:
+    get:
+      tags: [users]
+      summary: Get user public profile
+      operationId: getUserById
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: User public profile.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicUserResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /users/{userId}/collections:
+    get:
+      tags: [collections]
+      summary: Get collections of a user
+      operationId: getUserCollections
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/UserId'
+        - name: visibility
+          in: query
+          description: Filter by visibility.
+          schema:
+            $ref: '#/components/schemas/CollectionVisibility'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Visible collections of the user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionListResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /users/{userId}/compare:
+    get:
+      tags: [social]
+      summary: Compare your plants with another user
+      operationId: compareUsers
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: Compare result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserCompareResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /users/me/push-tokens:
+    post:
+      tags: [notifications]
+      summary: Save mobile push token
+      operationId: savePushToken
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PushTokenRequest'
+      responses:
+        '200':
+          description: Token saved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    delete:
+      tags: [notifications]
+      summary: Delete mobile push token
+      operationId: deletePushToken
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Token deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /collections:
+    get:
+      tags: [collections]
+      summary: Get my collections
+      operationId: getMyCollections
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - name: visibility
+          in: query
+          schema:
+            $ref: '#/components/schemas/CollectionVisibility'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Current user's collections.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [collections]
+      summary: Create collection
+      operationId: createCollection
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCollectionRequest'
+      responses:
+        '201':
+          description: Collection created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /collections/public:
+    get:
+      tags: [social]
+      summary: Get public collections
+      operationId: getPublicCollections
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - name: ownerUsername
+          in: query
+          schema:
+            type: string
+        - name: query
+          in: query
+          description: Search by collection name or short description.
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Public collections list.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionListResponse'
+
+  /collections/{collectionId}:
+    get:
+      tags: [collections]
+      summary: Get collection by id
+      operationId: getCollectionById
+      security:
+        - bearerAuth: []
+        - {}
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/CollectionId'
+      responses:
+        '200':
+          description: Collection details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [collections]
+      summary: Update collection
+      operationId: updateCollection
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/CollectionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCollectionRequest'
+      responses:
+        '200':
+          description: Collection updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [collections]
+      summary: Delete collection
+      operationId: deleteCollection
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/CollectionId'
+      responses:
+        '204':
+          description: Collection deleted.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /collections/{collectionId}/plants:
+    get:
+      tags: [plants]
+      summary: Get plants in collection
+      operationId: getCollectionPlants
+      security:
+        - bearerAuth: []
+        - {}
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/CollectionId'
+        - name: query
+          in: query
+          description: Search by scientific name, common name, family, or note.
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Plants in the collection.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlantListResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [plants]
+      summary: Add plant to collection
+      operationId: createPlant
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/CollectionId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreatePlantForm'
+      responses:
+        '201':
+          description: Plant added to collection.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlantResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+
+  /plants/identify/{project}:
+    post:
+      tags: [plants]
+      summary: Identify plant from photos
+      description: |
+        This endpoint uses the external PlantNet identification API.
+        The backend sends the photos to PlantNet and returns the result in a normalized format.
+        Client apps do not send the provider API key directly to this endpoint.
+
+        One request should describe one plant.
+        Supported files: image/jpeg, image/png.
+        Max total request size: 52428800 bytes.
+        Max images: 5.
+      operationId: identifyPlant
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - name: project
+          in: path
+          required: true
+          description: PlantNet project. Use all or a project name.
+          schema:
+            type: string
+            default: all
+        - name: include-related-images
+          in: query
+          description: If true, each result may include similar images.
+          schema:
+            type: boolean
+            default: false
+        - name: no-reject
+          in: query
+          description: If true, disable no-result reject class.
+          schema:
+            type: boolean
+            default: false
+        - name: nb-results
+          in: query
+          description: Max number of results.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+            default: 10
+        - name: lang
+          in: query
+          description: Language for result labels.
+          schema:
+            type: string
+            enum:
+              [en, fr, es, pt, de, it, ar, cs, nl, sk, zh, ru, tr, pl, uk, he, el, fi, id, ms, ca, ja, hu, hr, da, ro, bg, nb, sl, sv, et, eu, ur, ml, cy, ku, gl, eo, sat, zh-tw, pt-br, hi, de-at, sr, zh-hant, bn, fa, be, oc, lt, en-au, br]
+            default: en
+        - name: type
+          in: query
+          description: Recognition model type.
+          schema:
+            type: string
+            enum: [kt, legacy]
+            default: kt
+        - name: detailed
+          in: query
+          description: If true, add genus and family results too.
+          schema:
+            type: boolean
+            default: false
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PlantIdentifyRequest'
+      responses:
+        '200':
+          description: Plant identification result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlantIdentifyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Species not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '414':
+          description: URI too long.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /plants/{plantId}:
+    get:
+      tags: [plants]
+      summary: Get plant by id
+      operationId: getPlantById
+      security:
+        - bearerAuth: []
+        - {}
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/PlantId'
+      responses:
+        '200':
+          description: Plant details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlantResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [plants]
+      summary: Update plant
+      operationId: updatePlant
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/PlantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePlantRequest'
+      responses:
+        '200':
+          description: Plant updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlantResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [plants]
+      summary: Delete plant
+      operationId: deletePlant
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/PlantId'
+      responses:
+        '204':
+          description: Plant deleted.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /plants/{plantId}/photos:
+    post:
+      tags: [plants]
+      summary: Add photos to plant
+      operationId: addPlantPhotos
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/PlantId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AddPlantPhotosRequest'
+      responses:
+        '200':
+          description: Photos added.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlantResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+
+  /plants/{plantId}/photos/{photoId}:
+    delete:
+      tags: [plants]
+      summary: Delete one photo from plant
+      operationId: deletePlantPhoto
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/PlantId'
+        - $ref: '#/components/parameters/PhotoId'
+      responses:
+        '204':
+          description: Photo deleted.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /friends:
+    get:
+      tags: [friends]
+      summary: Get my friends
+      operationId: getMyFriends
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Friend list.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FriendListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /friends/requests:
+    get:
+      tags: [friends]
+      summary: Get my friend requests
+      operationId: getFriendRequests
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/FriendRequestStatus'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Friend requests.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FriendRequestListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [friends]
+      summary: Send friend request
+      operationId: sendFriendRequest
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFriendRequest'
+      responses:
+        '201':
+          description: Friend request sent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FriendRequestResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Request already exists or users are already friends.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /friends/requests/{requestId}/accept:
+    post:
+      tags: [friends]
+      summary: Accept friend request
+      operationId: acceptFriendRequest
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Friend request accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FriendRequestResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Request cannot be accepted in current state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /friends/requests/{requestId}/decline:
+    post:
+      tags: [friends]
+      summary: Decline friend request
+      operationId: declineFriendRequest
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Friend request declined.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FriendRequestResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Request cannot be declined in current state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /friends/{friendUserId}:
+    delete:
+      tags: [friends]
+      summary: Remove friend
+      operationId: removeFriend
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - name: friendUserId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Friend removed.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /gallery/plants:
+    get:
+      tags: [social]
+      summary: Get public plant gallery
+      operationId: getPublicPlantGallery
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - name: query
+          in: query
+          description: Search by plant name or collection name.
+          schema:
+            type: string
+        - name: family
+          in: query
+          schema:
+            type: string
+        - name: ownerUsername
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Public plant gallery.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicPlantGalleryResponse'
+
+  /notifications:
+    get:
+      tags: [notifications]
+      summary: Get my notifications
+      operationId: getMyNotifications
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - name: unreadOnly
+          in: query
+          schema:
+            type: boolean
+            default: false
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Notifications list.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /notifications/{notificationId}/read:
+    post:
+      tags: [notifications]
+      summary: Mark notification as read
+      operationId: markNotificationRead
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - name: notificationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Notification marked as read.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/users:
+    get:
+      tags: [admin]
+      summary: Get all users
+      description: Admin only.
+      operationId: adminGetUsers
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - name: query
+          in: query
+          description: Search by username or email.
+          schema:
+            type: string
+        - name: role
+          in: query
+          schema:
+            $ref: '#/components/schemas/UserRole'
+        - name: blocked
+          in: query
+          schema:
+            type: boolean
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: User list for admin.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/users/{userId}:
+    get:
+      tags: [admin]
+      summary: Get one user for admin
+      description: Admin only.
+      operationId: adminGetUser
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: Full user data for admin.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [admin]
+      summary: Delete user
+      description: Admin only.
+      operationId: adminDeleteUser
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '204':
+          description: User deleted.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/users/{userId}/block:
+    post:
+      tags: [admin]
+      summary: Block user
+      description: Admin only.
+      operationId: adminBlockUser
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BlockUserRequest'
+      responses:
+        '200':
+          description: User blocked.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/users/{userId}/unblock:
+    post:
+      tags: [admin]
+      summary: Unblock user
+      description: Admin only.
+      operationId: adminUnblockUser
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: User unblocked.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/users/{userId}/warnings:
+    post:
+      tags: [admin]
+      summary: Send warning to user
+      description: Admin only.
+      operationId: adminSendWarning
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WarningRequest'
+      responses:
+        '201':
+          description: Warning sent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/notifications/broadcast:
+    post:
+      tags: [admin]
+      summary: Send push or in-app message
+      description: Admin only.
+      operationId: adminBroadcastNotification
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BroadcastRequest'
+      responses:
+        '202':
+          description: Message queued for sending.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/collections:
+    get:
+      tags: [admin]
+      summary: Get all collections
+      description: Admin only.
+      operationId: adminGetCollections
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - name: ownerId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: visibility
+          in: query
+          schema:
+            $ref: '#/components/schemas/CollectionVisibility'
+        - name: query
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Collection list for admin.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminCollectionListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/collections/{collectionId}:
+    delete:
+      tags: [admin]
+      summary: Delete any collection
+      description: Admin only.
+      operationId: adminDeleteCollection
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/CollectionId'
+      responses:
+        '204':
+          description: Collection deleted.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/plants:
+    get:
+      tags: [admin]
+      summary: Get all plants
+      description: Admin only.
+      operationId: adminGetPlants
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - name: ownerId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: collectionId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: query
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Plant list for admin.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminPlantListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/plants/{plantId}:
+    delete:
+      tags: [admin]
+      summary: Delete any plant
+      description: Admin only.
+      operationId: adminDeletePlant
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/PlantId'
+      responses:
+        '204':
+          description: Plant deleted.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/photos/{photoId}:
+    delete:
+      tags: [admin]
+      summary: Delete any photo
+      description: Admin only.
+      operationId: adminDeletePhoto
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/PhotoId'
+      responses:
+        '204':
+          description: Photo deleted.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/stats:
+    get:
+      tags: [admin]
+      summary: Get system stats
+      description: Admin only.
+      operationId: adminGetStats
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Main system stats.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemStatsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/external-api/usage:
+    get:
+      tags: [admin]
+      summary: Get plant recognition API usage
+      description: Admin only.
+      operationId: adminGetExternalApiUsage
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Recognition API usage.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalApiUsageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+components:
+  parameters:
+    AcceptLanguage:
+      name: Accept-Language
+      in: header
+      required: false
+      description: Preferred language for messages.
+      schema:
+        type: string
+        enum: [pl-PL, en-US]
+        default: pl-PL
+    Page:
+      name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    Size:
+      name: size
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    UserId:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    CollectionId:
+      name: collectionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    PlantId:
+      name: plantId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    PhotoId:
+      name: photoId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    RequestId:
+      name: requestId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    BadRequest:
+      description: Bad request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Unauthorized:
+      description: Missing or invalid token.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Forbidden:
+      description: No permission for this action.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    NotFound:
+      description: Resource not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    PayloadTooLarge:
+      description: Uploaded files are too large.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    UnsupportedMediaType:
+      description: Unsupported file type.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    TooManyRequests:
+      description: Too many requests.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    InternalServerError:
+      description: Internal server error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+
+  schemas:
+    ApiError:
+      type: object
+      required: [timestamp, status, error, message, path]
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+          example: 400
+        error:
+          type: string
+          example: Bad Request
+        message:
+          type: string
+          example: Validation failed
+        path:
+          type: string
+          example: /users/register
+        details:
+          type: array
+          items:
+            type: string
+
+    PageInfo:
+      type: object
+      required: [page, size, totalItems, totalPages]
+      properties:
+        page:
+          type: integer
+          example: 0
+        size:
+          type: integer
+          example: 20
+        totalItems:
+          type: integer
+          example: 125
+        totalPages:
+          type: integer
+          example: 7
+
+    MessageResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          example: Operation completed
+
+    UserRole:
+      type: string
+      enum: [USER, ADMIN]
+
+    CollectionVisibility:
+      type: string
+      enum: [PRIVATE, FRIENDS, PUBLIC]
+
+    PlantSource:
+      type: string
+      enum: [MANUAL, IDENTIFY]
+
+    FriendRequestStatus:
+      type: string
+      enum: [PENDING, ACCEPTED, DECLINED, CANCELED]
+
+    NotificationType:
+      type: string
+      enum: [WARNING, FRIEND_REQUEST, FRIEND_ACCEPTED, SYSTEM, PUSH]
+
+    OrganType:
+      type: string
+      enum: [auto, leaf, flower, fruit, bark, habit, scan, branch, sheet, other, drawing, seed, bud, anatomy, aerial]
+
+    RegisterRequest:
+      type: object
+      required: [username, email, password]
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 50
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+          format: password
+
+    RegisterResponse:
+      type: object
+      required: [id, username, email]
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+
+    LoginRequest:
+      type: object
+      required: [login, password]
+      properties:
+        login:
+          type: string
+          description: Username or email.
+        password:
+          type: string
+          format: password
+
+    LoginResponse:
+      type: object
+      required: [id, username, email, token]
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        token:
+          type: string
+          description: JWT access token.
+        refreshToken:
+          type: string
+          description: JWT refresh token.
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserRole'
+
+    RefreshTokenRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+
+    LogoutRequest:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+          description: Refresh token to revoke. Optional if session is tracked from access token.
+
+    ForgotPasswordRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+
+    ResetPasswordRequest:
+      type: object
+      required: [token, newPassword]
+      properties:
+        token:
+          type: string
+        newPassword:
+          type: string
+          minLength: 8
+          format: password
+
+    UserResponse:
+      type: object
+      required: [id, username, email, role, blocked, createdAt, stats]
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          $ref: '#/components/schemas/UserRole'
+        blocked:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        preferredLanguage:
+          type: string
+          enum: [pl, en]
+        bio:
+          type: string
+        stats:
+          $ref: '#/components/schemas/UserStats'
+
+    UserStats:
+      type: object
+      required: [totalCollections, totalPlants, uniqueSpecies, friendsCount]
+      properties:
+        totalCollections:
+          type: integer
+        totalPlants:
+          type: integer
+        uniqueSpecies:
+          type: integer
+        friendsCount:
+          type: integer
+        publicCollections:
+          type: integer
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 50
+        bio:
+          type: string
+          maxLength: 1000
+        preferredLanguage:
+          type: string
+          enum: [pl, en]
+
+    PublicUserResponse:
+      type: object
+      required: [id, username, createdAt, stats]
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        bio:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        stats:
+          $ref: '#/components/schemas/PublicUserStats'
+
+    PublicUserStats:
+      type: object
+      required: [publicCollections, totalPublicPlants, uniquePublicSpecies]
+      properties:
+        publicCollections:
+          type: integer
+        totalPublicPlants:
+          type: integer
+        uniquePublicSpecies:
+          type: integer
+
+    UserShort:
+      type: object
+      required: [id, username]
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        avatarUrl:
+          type: string
+          format: uri
+
+    UserSearchResponse:
+      type: object
+      required: [items, page]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserShort'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+
+    CollectionSummary:
+      type: object
+      required: [id, name, visibility, plantsCount, uniqueSpeciesCount, owner]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        visibility:
+          $ref: '#/components/schemas/CollectionVisibility'
+        plantsCount:
+          type: integer
+        uniqueSpeciesCount:
+          type: integer
+        coverPhotoUrl:
+          type: string
+          format: uri
+        owner:
+          $ref: '#/components/schemas/UserShort'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CollectionResponse:
+      type: object
+      required: [id, name, visibility, owner, plantsCount, uniqueSpeciesCount, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        visibility:
+          $ref: '#/components/schemas/CollectionVisibility'
+        owner:
+          $ref: '#/components/schemas/UserShort'
+        plantsCount:
+          type: integer
+        uniqueSpeciesCount:
+          type: integer
+        coverPhotoUrl:
+          type: string
+          format: uri
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CollectionListResponse:
+      type: object
+      required: [items, page]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollectionSummary'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+
+    CreateCollectionRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        description:
+          type: string
+          maxLength: 2000
+        visibility:
+          $ref: '#/components/schemas/CollectionVisibility'
+
+    UpdateCollectionRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        description:
+          type: string
+          maxLength: 2000
+        visibility:
+          $ref: '#/components/schemas/CollectionVisibility'
+
+    PlantPhotoResponse:
+      type: object
+      required: [id, url, uploadedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        url:
+          type: string
+          format: uri
+        thumbnailUrl:
+          type: string
+          format: uri
+        organ:
+          $ref: '#/components/schemas/OrganType'
+        uploadedAt:
+          type: string
+          format: date-time
+
+    PlantLocation:
+      type: object
+      properties:
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+
+    PlantResponse:
+      type: object
+      required:
+        [id, collectionId, scientificName, source, photos, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        collectionId:
+          type: string
+          format: uuid
+        scientificName:
+          type: string
+        scientificNameAuthor:
+          type: string
+        commonName:
+          type: string
+        family:
+          type: string
+        genus:
+          type: string
+        description:
+          type: string
+        source:
+          $ref: '#/components/schemas/PlantSource'
+        recognitionScore:
+          type: number
+          format: double
+        gbifId:
+          type: integer
+          format: int64
+        powoId:
+          type: string
+        iucnId:
+          type: string
+        iucnCategory:
+          type: string
+        capturedAt:
+          type: string
+          format: date-time
+        location:
+          $ref: '#/components/schemas/PlantLocation'
+        photos:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlantPhotoResponse'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        owner:
+          $ref: '#/components/schemas/UserShort'
+
+    PlantSummary:
+      allOf:
+        - $ref: '#/components/schemas/PlantResponse'
+
+    PlantListResponse:
+      type: object
+      required: [items, page]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlantSummary'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+
+    CreatePlantForm:
+      type: object
+      required: [scientificName, source, images]
+      properties:
+        scientificName:
+          type: string
+          description: Scientific name selected by user. Usually taken from identify result.
+        scientificNameAuthor:
+          type: string
+        commonName:
+          type: string
+        family:
+          type: string
+        genus:
+          type: string
+        description:
+          type: string
+          maxLength: 5000
+        source:
+          $ref: '#/components/schemas/PlantSource'
+        recognitionScore:
+          type: number
+          format: double
+        gbifId:
+          type: integer
+          format: int64
+        powoId:
+          type: string
+        iucnId:
+          type: string
+        iucnCategory:
+          type: string
+        capturedAt:
+          type: string
+          format: date-time
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        images:
+          type: array
+          maxItems: 5
+          items:
+            type: string
+            format: binary
+        organs:
+          type: array
+          maxItems: 5
+          items:
+            $ref: '#/components/schemas/OrganType'
+
+    UpdatePlantRequest:
+      type: object
+      properties:
+        description:
+          type: string
+          maxLength: 5000
+        commonName:
+          type: string
+        capturedAt:
+          type: string
+          format: date-time
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+
+    AddPlantPhotosRequest:
+      type: object
+      required: [images]
+      properties:
+        images:
+          type: array
+          maxItems: 5
+          items:
+            type: string
+            format: binary
+        organs:
+          type: array
+          maxItems: 5
+          items:
+            $ref: '#/components/schemas/OrganType'
+
+    PlantIdentifyRequest:
+      type: object
+      required: [images]
+      properties:
+        images:
+          type: array
+          description: Photos of the same plant.
+          maxItems: 5
+          items:
+            type: string
+            format: binary
+        organs:
+          type: array
+          description: Organ list. If sent, it should match images length.
+          maxItems: 5
+          items:
+            $ref: '#/components/schemas/OrganType'
+
+    PlantIdentifyResponse:
+      type: object
+      required: [query, language, bestMatch, results, remainingIdentificationRequests, providerVersion]
+      properties:
+        query:
+          $ref: '#/components/schemas/PlantIdentifyQuery'
+        language:
+          type: string
+        preferredProject:
+          type: string
+        switchedToProject:
+          type: string
+        bestMatch:
+          type: string
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlantIdentifyResult'
+        remainingIdentificationRequests:
+          type: integer
+        providerVersion:
+          type: string
+        predictedOrgans:
+          type: array
+          items:
+            $ref: '#/components/schemas/PredictedOrgan'
+        otherResults:
+          $ref: '#/components/schemas/PlantOtherResults'
+
+    PlantIdentifyQuery:
+      type: object
+      required: [project, images, includeRelatedImages, noReject, type]
+      properties:
+        project:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        organs:
+          type: array
+          items:
+            type: string
+        includeRelatedImages:
+          type: boolean
+        noReject:
+          type: boolean
+        type:
+          type: string
+
+    PlantIdentifyResult:
+      type: object
+      required: [score, species]
+      properties:
+        score:
+          type: number
+          format: double
+        species:
+          $ref: '#/components/schemas/SpeciesInfo'
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReferenceImage'
+        gbif:
+          $ref: '#/components/schemas/ExternalIdNumber'
+        powo:
+          $ref: '#/components/schemas/ExternalIdString'
+        iucn:
+          $ref: '#/components/schemas/IucnInfo'
+
+    SpeciesInfo:
+      type: object
+      required: [scientificName]
+      properties:
+        scientificNameWithoutAuthor:
+          type: string
+        scientificNameAuthorship:
+          type: string
+        scientificName:
+          type: string
+        genus:
+          $ref: '#/components/schemas/SimpleTaxon'
+        family:
+          $ref: '#/components/schemas/SimpleTaxon'
+        commonNames:
+          type: array
+          items:
+            type: string
+
+    SimpleTaxon:
+      type: object
+      properties:
+        scientificNameWithoutAuthor:
+          type: string
+        scientificNameAuthorship:
+          type: string
+        scientificName:
+          type: string
+
+    ReferenceImage:
+      type: object
+      properties:
+        organ:
+          type: string
+        author:
+          type: string
+        license:
+          type: string
+        date:
+          $ref: '#/components/schemas/ReferenceImageDate'
+        citation:
+          type: string
+        url:
+          $ref: '#/components/schemas/ReferenceImageUrls'
+
+    ReferenceImageDate:
+      type: object
+      properties:
+        timestamp:
+          type: integer
+        string:
+          type: string
+
+    ReferenceImageUrls:
+      type: object
+      properties:
+        o:
+          type: string
+          format: uri
+        m:
+          type: string
+          format: uri
+        s:
+          type: string
+          format: uri
+
+    ExternalIdNumber:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+
+    ExternalIdString:
+      type: object
+      properties:
+        id:
+          type: string
+
+    IucnInfo:
+      type: object
+      properties:
+        id:
+          type: string
+        category:
+          type: string
+
+    PredictedOrgan:
+      type: object
+      properties:
+        image:
+          type: string
+        filename:
+          type: string
+        organ:
+          type: string
+        score:
+          type: number
+          format: double
+
+    PlantOtherResults:
+      type: object
+      properties:
+        genus:
+          type: array
+          items:
+            $ref: '#/components/schemas/GenusResult'
+        family:
+          type: array
+          items:
+            $ref: '#/components/schemas/FamilyResult'
+
+    GenusResult:
+      type: object
+      properties:
+        score:
+          type: number
+          format: double
+        genus:
+          type: object
+          properties:
+            scientificName:
+              type: string
+            family:
+              $ref: '#/components/schemas/SimpleTaxon'
+            commonNames:
+              type: array
+              items:
+                type: string
+        gbif:
+          $ref: '#/components/schemas/ExternalIdNumber'
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReferenceImage'
+
+    FamilyResult:
+      type: object
+      properties:
+        score:
+          type: number
+          format: double
+        family:
+          type: object
+          properties:
+            scientificName:
+              type: string
+            commonNames:
+              type: array
+              items:
+                type: string
+        gbif:
+          $ref: '#/components/schemas/ExternalIdNumber'
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReferenceImage'
+
+    FriendRequestResponse:
+      type: object
+      required: [id, sender, receiver, status, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        sender:
+          $ref: '#/components/schemas/UserShort'
+        receiver:
+          $ref: '#/components/schemas/UserShort'
+        status:
+          $ref: '#/components/schemas/FriendRequestStatus'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateFriendRequest:
+      type: object
+      required: [targetUserId]
+      properties:
+        targetUserId:
+          type: string
+          format: uuid
+
+    FriendListResponse:
+      type: object
+      required: [items, page]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserShort'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+
+    FriendRequestListResponse:
+      type: object
+      required: [items, page]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/FriendRequestResponse'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+
+    UserRankingItem:
+      type: object
+      required: [position, user, uniqueSpecies, totalPlants, totalCollections]
+      properties:
+        position:
+          type: integer
+        user:
+          $ref: '#/components/schemas/UserShort'
+        uniqueSpecies:
+          type: integer
+        totalPlants:
+          type: integer
+        totalCollections:
+          type: integer
+
+    UserRankingResponse:
+      type: object
+      required: [items, page]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserRankingItem'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+
+    UserCompareResponse:
+      type: object
+      required: [me, otherUser, commonSpeciesCount, speciesOnlyInMeCount, speciesOnlyInOtherCount]
+      properties:
+        me:
+          $ref: '#/components/schemas/UserShort'
+        otherUser:
+          $ref: '#/components/schemas/UserShort'
+        commonSpeciesCount:
+          type: integer
+        speciesOnlyInMeCount:
+          type: integer
+        speciesOnlyInOtherCount:
+          type: integer
+        commonSpecies:
+          type: array
+          items:
+            type: string
+        speciesOnlyInMe:
+          type: array
+          items:
+            type: string
+        speciesOnlyInOther:
+          type: array
+          items:
+            type: string
+
+    PublicPlantGalleryItem:
+      type: object
+      required: [plantId, scientificName, collection, owner, photo]
+      properties:
+        plantId:
+          type: string
+          format: uuid
+        scientificName:
+          type: string
+        commonName:
+          type: string
+        family:
+          type: string
+        collection:
+          $ref: '#/components/schemas/CollectionSummary'
+        owner:
+          $ref: '#/components/schemas/UserShort'
+        photo:
+          $ref: '#/components/schemas/PlantPhotoResponse'
+
+    PublicPlantGalleryResponse:
+      type: object
+      required: [items, page]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicPlantGalleryItem'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+
+    PushTokenRequest:
+      type: object
+      required: [token, platform]
+      properties:
+        token:
+          type: string
+        platform:
+          type: string
+          enum: [ANDROID, IOS, WEB]
+        deviceName:
+          type: string
+
+    NotificationResponse:
+      type: object
+      required: [id, type, title, message, read, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/NotificationType'
+        title:
+          type: string
+        message:
+          type: string
+        read:
+          type: boolean
+        pushSent:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    NotificationListResponse:
+      type: object
+      required: [items, page]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/NotificationResponse'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+
+    BlockUserRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+        until:
+          type: string
+          format: date-time
+
+    WarningRequest:
+      type: object
+      required: [title, message]
+      properties:
+        title:
+          type: string
+          maxLength: 200
+        message:
+          type: string
+          maxLength: 5000
+        sendPush:
+          type: boolean
+          default: true
+
+    BroadcastRequest:
+      type: object
+      required: [title, message]
+      properties:
+        title:
+          type: string
+        message:
+          type: string
+        sendPush:
+          type: boolean
+          default: true
+        userIds:
+          type: array
+          description: Optional. If empty, send to all users.
+          items:
+            type: string
+            format: uuid
+
+    AdminUserResponse:
+      allOf:
+        - $ref: '#/components/schemas/UserResponse'
+        - type: object
+          properties:
+            blockReason:
+              type: string
+            blockedUntil:
+              type: string
+              format: date-time
+            lastLoginAt:
+              type: string
+              format: date-time
+
+    AdminUserListResponse:
+      type: object
+      required: [items, page]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminUserResponse'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+
+    AdminCollectionSummary:
+      allOf:
+        - $ref: '#/components/schemas/CollectionSummary'
+        - type: object
+          properties:
+            deleted:
+              type: boolean
+              default: false
+
+    AdminCollectionListResponse:
+      type: object
+      required: [items, page]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminCollectionSummary'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+
+    AdminPlantSummary:
+      allOf:
+        - $ref: '#/components/schemas/PlantResponse'
+
+    AdminPlantListResponse:
+      type: object
+      required: [items, page]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminPlantSummary'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+
+    SystemStatsResponse:
+      type: object
+      required:
+        [usersCount, blockedUsersCount, collectionsCount, publicCollectionsCount, plantsCount, uniqueSpeciesCount, friendLinksCount, todayIdentificationRequests]
+      properties:
+        usersCount:
+          type: integer
+        blockedUsersCount:
+          type: integer
+        collectionsCount:
+          type: integer
+        publicCollectionsCount:
+          type: integer
+        plantsCount:
+          type: integer
+        uniqueSpeciesCount:
+          type: integer
+        friendLinksCount:
+          type: integer
+        todayIdentificationRequests:
+          type: integer
+        last24hIdentificationRequests:
+          type: integer
+        activeUsersLast30Days:
+          type: integer
+
+    ExternalApiUsageResponse:
+      type: object
+      required: [providerName, providerPath, requestsToday, requestsThisMonth, remainingIdentificationRequests]
+      properties:
+        providerName:
+          type: string
+          example: PlantNet
+        providerPath:
+          type: string
+          example: POST /v2/identify/{project}
+        requestsToday:
+          type: integer
+        requestsThisMonth:
+          type: integer
+        failedRequestsToday:
+          type: integer
+        remainingIdentificationRequests:
+          type: integer
+        lastSuccessAt:
+          type: string
+          format: date-time
+        lastErrorAt:
+          type: string
+          format: date-time
+        lastErrorMessage:
+          type: string
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

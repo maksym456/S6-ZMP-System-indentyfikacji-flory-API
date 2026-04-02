@@ -10,6 +10,11 @@ import java.util.UUID;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
 @RestController
 @RequestMapping("/users")
 public class UserController {
@@ -22,18 +27,29 @@ public class UserController {
         this.userService = userService;
     }
 
-    @Operation(summary = "Register a new user", security = {})
+    @Operation(summary = "Register a new user")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "User registered"),
+            @ApiResponse(responseCode = "400", description = "Invalid request"),
+            @ApiResponse(responseCode = "409", description = "Email or username already exists")
+    })
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/register")
     public RegisterResponse register(@RequestBody RegisterRequest request) {
         return userService.register(request);
     }
 
-    @Operation(summary = "Login and get JWT", security = {})
+    @Operation(summary = "Login and get JWT")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Login successful"),
+            @ApiResponse(responseCode = "400", description = "Invalid request"),
+            @ApiResponse(responseCode = "401", description = "Invalid login or password")
+    })
     @PostMapping("/login")
     public LoginResponse login(@RequestBody LoginRequest request) {
         User user = userService.login(request);
         String token = jwtService.generateToken(user);
-        return new LoginResponse(user, token);
+        return new LoginResponse("Logged in successfully", user, token);
     }
 
     @Operation(summary = "Get current user", security = @SecurityRequirement(name = "bearerAuth"))

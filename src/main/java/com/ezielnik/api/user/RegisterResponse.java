@@ -4,18 +4,20 @@ import java.util.UUID;
 
 public class RegisterResponse {
 
+    private final String message;
     private UUID id;
     private String username;
     private String email;
 
-    public RegisterResponse() {
-    }
 
-    public RegisterResponse(UUID id, String username, String email) {
+    public RegisterResponse(String message, UUID id, String username, String email) {
+        this.message = message;
         this.id = id;
         this.username = username;
         this.email = email;
     }
+
+    public String getMessage() { return message; }
 
     public UUID getId() {
         return id;
@@ -40,4 +42,5 @@ public class RegisterResponse {
     public void setEmail(String email) {
         this.email = email;
     }
+
 }
