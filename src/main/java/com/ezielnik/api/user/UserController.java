@@ -36,7 +36,13 @@ public class UserController {
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/register")
     public RegisterResponse register(@RequestBody RegisterRequest request) {
-        return userService.register(request);
+        User savedUser = userService.register(request);
+        return new RegisterResponse(
+                "User registered successfully",
+                savedUser.getId(),
+                savedUser.getUsername(),
+                savedUser.getEmail()
+        );
     }
 
     @Operation(summary = "Login and get JWT")

@@ -19,7 +19,7 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public RegisterResponse register(RegisterRequest request) {
+    public User register(RegisterRequest request) {
         if (request.getUsername() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is required");
         }
@@ -45,13 +45,7 @@ public class UserService {
         user.setEmail(request.getEmail());
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
 
-        User savedUser = userRepository.save(user);
-        return new RegisterResponse(
-                "User registered successfully",
-                savedUser.getId(),
-                savedUser.getUsername(),
-                savedUser.getEmail()
-        );
+        return userRepository.save(user);
     }
 
     public User login(LoginRequest request) {
