@@ -43,4 +43,21 @@ public class JwtService {
                 .signWith(key)
                 .compact();
     }
+    public String generateEmailVerificationToken(User user) {
+        SecretKey key = Keys.hmacShaKeyFor(
+                jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8)
+        );
+
+        long now = System.currentTimeMillis();
+        long verificationExpirationMs = 15 * 60 * 1000; // 15 minutes
+
+        return Jwts.builder()
+                .subject(user.getId().toString())
+                .claim("purpose", "email_verification")
+                .claim("email", user.getEmail())
+                .issuedAt(new Date(now))
+                .expiration(new Date(now + verificationExpirationMs))
+                .signWith(key)
+                .compact();
+    }
 }
