@@ -1,4 +1,4 @@
-package com.ezielnik.api.user;
+package com.ezielnik.api.auth;
 
 public class RegisterRequest {
 

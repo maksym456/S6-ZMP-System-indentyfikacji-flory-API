@@ -1,5 +1,6 @@
-package com.ezielnik.api.user;
+package com.ezielnik.api.auth;
 
+import com.ezielnik.api.user.User;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Service;

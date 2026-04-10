@@ -5,12 +5,12 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.4</version>
+        <version>4.0.5</version>
         <relativePath/>
     </parent>
     <groupId>com.example</groupId>
     <artifactId>S6-ZMP-System-indentyfikacji-flory-API</artifactId>
-    <version>0.0.4-SNAPSHOT</version>
+    <version>0.0.7-SNAPSHOT</version>
     <name>S6-ZMP-System-indentyfikacji-flory-API</name>
     <description>S6-ZMP-System-indentyfikacji-flory-API</description>
     <url/>
@@ -99,6 +99,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.bucket4j</groupId>
+            <artifactId>bucket4j_jdk17-core</artifactId>
+            <version>8.17.0</version>
         </dependency>
     </dependencies>
 

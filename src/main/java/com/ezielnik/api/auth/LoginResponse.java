@@ -1,4 +1,6 @@
-package com.ezielnik.api.user;
+package com.ezielnik.api.auth;
+
+import com.ezielnik.api.user.User;
 
 import java.util.UUID;
 

@@ -1,4 +1,4 @@
-package com.ezielnik.api.user;
+package com.ezielnik.api.auth;
 
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;

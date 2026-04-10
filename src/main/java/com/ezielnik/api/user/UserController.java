@@ -1,5 +1,6 @@
 package com.ezielnik.api.user;
 
+import com.ezielnik.api.auth.*;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
