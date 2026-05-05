@@ -70,4 +70,14 @@ public class UserController {
     public String verifyEmail(@RequestParam String token) {
         return userService.verifyEmail(token);
     }
+
+    @Operation(summary = "Resend verification email", security = {})
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Verification email resent if account exists"),
+            @ApiResponse(responseCode = "400", description = "Email is required")
+    })
+    @PostMapping("/resend-verification")
+    public String resendVerificationEmail(@RequestParam String email) {
+        return userService.resendVerificationEmail(email);
+    }
 }

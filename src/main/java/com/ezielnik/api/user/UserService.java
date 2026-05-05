@@ -112,4 +112,27 @@ public class UserService {
 
         return "Email verified successfully";
     }
+
+    public String resendVerificationEmail(String email) {
+        if (email == null || email.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email is required");
+        }
+
+        User user = userRepository
+                .findByEmailOrUsername(email.trim().toLowerCase(), email.trim().toLowerCase())
+                .orElse(null);
+
+        if (user == null) {
+            return "If an account with this email exists and is not verified, a verification email has been sent.";
+        }
+
+        if (user.isVerified()) {
+            return "Email is already verified.";
+        }
+
+        String verificationToken = jwtService.generateEmailVerificationToken(user);
+        emailService.sendVerificationEmail(user.getEmail(), verificationToken);
+
+        return "Verification email sent.";
+    }
 }
