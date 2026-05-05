@@ -1,5 +1,6 @@
 package com.ezielnik.api.auth;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -8,13 +9,18 @@ import org.springframework.stereotype.Service;
 public class EmailService {
 
     private final JavaMailSender mailSender;
+    private final String appBaseUrl;
 
-    public EmailService(JavaMailSender mailSender) {
+    public EmailService(JavaMailSender mailSender,
+                        @Value("${app.base-url}") String appBaseUrl) {
         this.mailSender = mailSender;
+        this.appBaseUrl = appBaseUrl.endsWith("/")
+                ? appBaseUrl.substring(0, appBaseUrl.length() - 1)
+                : appBaseUrl;
     }
 
     public void sendVerificationEmail(String toEmail, String verificationToken) {
-        String verificationLink = "http://localhost:8080/users/verify?token=" + verificationToken;
+        String verificationLink = appBaseUrl + "/users/verify?token=" + verificationToken;
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(toEmail);
