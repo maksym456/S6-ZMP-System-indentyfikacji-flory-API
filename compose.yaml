@@ -14,7 +14,6 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/postgres
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
-      JWT_SECRET: ya1ArpCqjXfgXT+mMGKJAMec8fDb23UBkYZfTTU05I4=
       JWT_EXPIRATION_MS: 604800000
     depends_on:
       - postgres
