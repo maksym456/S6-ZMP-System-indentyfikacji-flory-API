@@ -37,13 +37,7 @@ public class UserController {
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/register")
     public RegisterResponse register(@RequestBody RegisterRequest request) {
-        User savedUser = userService.register(request);
-        return new RegisterResponse(
-                "User registered successfully",
-                savedUser.getId(),
-                savedUser.getUsername(),
-                savedUser.getEmail()
-        );
+        return userService.register(request);
     }
 
     @Operation(summary = "Login and get JWT")
@@ -64,5 +58,16 @@ public class UserController {
     public UserResponse me(@AuthenticationPrincipal Jwt jwt) {
         User user = userService.me(UUID.fromString(jwt.getSubject()));
         return new UserResponse(user);
+    }
+
+    @Operation(summary = "Verify user email", security = {})
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Email verified successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid or expired verification token"),
+            @ApiResponse(responseCode = "404", description = "User not found")
+    })
+    @GetMapping("/verify")
+    public String verifyEmail(@RequestParam String token) {
+        return userService.verifyEmail(token);
     }
 }

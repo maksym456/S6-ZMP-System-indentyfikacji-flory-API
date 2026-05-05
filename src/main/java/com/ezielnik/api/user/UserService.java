@@ -1,7 +1,11 @@
 package com.ezielnik.api.user;
 
+import com.ezielnik.api.auth.EmailService;
+import com.ezielnik.api.auth.JwtService;
 import com.ezielnik.api.auth.LoginRequest;
 import com.ezielnik.api.auth.RegisterRequest;
+import com.ezielnik.api.auth.RegisterResponse;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -14,14 +18,20 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
+    private final EmailService emailService;
 
     public UserService(UserRepository userRepository,
-                       PasswordEncoder passwordEncoder) {
+                       PasswordEncoder passwordEncoder,
+                       JwtService jwtService,
+                       EmailService emailService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
+        this.emailService = emailService;
     }
 
-    public User register(RegisterRequest request) {
+    public RegisterResponse register(RegisterRequest request) {
         if (request.getUsername() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is required");
         }
@@ -47,7 +57,17 @@ public class UserService {
         user.setEmail(request.getEmail());
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+
+        String verificationToken = jwtService.generateEmailVerificationToken(savedUser);
+        emailService.sendVerificationEmail(savedUser.getEmail(), verificationToken);
+
+        return new RegisterResponse(
+                "User registered successfully. Please verify your email.",
+                savedUser.getId(),
+                savedUser.getUsername(),
+                savedUser.getEmail()
+        );
     }
 
     public User login(LoginRequest request) {
@@ -75,5 +95,21 @@ public class UserService {
     public User me(UUID userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+    }
+
+    public String verifyEmail(String token) {
+        UUID userId = jwtService.extractEmailVerificationUserId(token);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (user.isVerified()) {
+            return "Email already verified";
+        }
+
+        user.setVerified(true);
+        userRepository.save(user);
+
+        return "Email verified successfully";
     }
 }
