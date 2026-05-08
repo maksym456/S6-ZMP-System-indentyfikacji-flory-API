@@ -34,6 +34,28 @@ public class UserService {
         this.emailService = emailService;
     }
 
+    private void validatePasswordStrength(String password) {
+        if (password == null || password.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password is required");
+        }
+
+        if (password.length() < 8) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password must be at least 8 characters long");
+        }
+
+        if (!password.matches(".*[A-Z].*")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password must contain at least one capital letter");
+        }
+
+        if (!password.matches(".*\\d.*")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password must contain at least one number");
+        }
+
+        if (!password.matches(".*[^A-Za-z0-9].*")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password must contain at least one special symbol");
+        }
+    }
+
     public RegisterResponse register(RegisterRequest request) {
         if (request.getUsername() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is required");
@@ -46,6 +68,8 @@ public class UserService {
         if (request.getPassword() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password is required");
         }
+
+        validatePasswordStrength(request.getPassword());
 
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists");
@@ -165,9 +189,7 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Reset token is required");
         }
 
-        if (request.getNewPassword() == null || request.getNewPassword().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "New password is required");
-        }
+        validatePasswordStrength(request.getNewPassword());
 
         UUID userId = jwtService.extractPasswordResetUserId(request.getToken());
 
