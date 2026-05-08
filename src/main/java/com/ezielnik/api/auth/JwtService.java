@@ -17,6 +17,10 @@ import io.jsonwebtoken.JwtException;
 
 import java.util.UUID;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.util.Base64;
+
 @Service
 public class JwtService {
     private final JwtProperties jwtProperties;
@@ -95,6 +99,106 @@ public class JwtService {
 
         } catch (JwtException | IllegalArgumentException ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid verification token");
+        }
+    }
+
+    public String generatePasswordResetToken(User user) {
+        SecretKey key = Keys.hmacShaKeyFor(
+                jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8)
+        );
+
+        long now = System.currentTimeMillis();
+        long resetExpirationMs = 15 * 60 * 1000; // 15 minutes
+
+        return Jwts.builder()
+                .subject(user.getId().toString())
+                .claim("purpose", "password_reset")
+                .claim("email", user.getEmail())
+                .claim("passwordVersion",
+                        createPasswordVersion(user))
+                .issuedAt(new Date(now))
+                .expiration(new Date(now + resetExpirationMs))
+                .signWith(key)
+                .compact();
+    }
+
+    public UUID extractPasswordResetUserId(String token) {
+        SecretKey key = Keys.hmacShaKeyFor(
+                jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8)
+        );
+
+        try {
+            Claims claims = Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+
+            String purpose = claims.get("purpose", String.class);
+
+            if (!"password_reset".equals(purpose)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid password reset token");
+            }
+
+            return UUID.fromString(claims.getSubject());
+
+        } catch (ExpiredJwtException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password reset link has expired");
+
+        } catch (JwtException | IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid password reset token");
+        }
+    }
+    public void validatePasswordResetTokenForUser(String token, User user) {
+        SecretKey key = Keys.hmacShaKeyFor(
+                jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8)
+        );
+
+        try {
+            Claims claims = Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+
+            String purpose = claims.get("purpose", String.class);
+
+            if (!"password_reset".equals(purpose)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid password reset token");
+            }
+
+            String tokenPasswordVersion = claims.get("passwordVersion", String.class);
+            String currentPasswordVersion = createPasswordVersion(user);
+
+            if (tokenPasswordVersion == null || !tokenPasswordVersion.equals(currentPasswordVersion)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password reset link is no longer valid");
+            }
+
+        } catch (ExpiredJwtException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password reset link has expired");
+
+        } catch (JwtException | IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid password reset token");
+        }
+    }
+    private String createPasswordVersion(User user) {
+        try {
+            Mac mac = Mac.getInstance("HmacSHA256");
+            SecretKeySpec keySpec = new SecretKeySpec(
+                    jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8),
+                    "HmacSHA256"
+            );
+
+            mac.init(keySpec);
+
+            byte[] hash = mac.doFinal(user.getPasswordHash().getBytes(StandardCharsets.UTF_8));
+
+            return Base64.getUrlEncoder()
+                    .withoutPadding()
+                    .encodeToString(hash);
+
+        } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Could not create password reset token");
         }
     }
 }

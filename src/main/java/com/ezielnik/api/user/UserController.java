@@ -16,6 +16,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.ezielnik.api.auth.ForgotPasswordRequest;
+import com.ezielnik.api.auth.ResetPasswordRequest;
+
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.util.HtmlUtils;
+
 @RestController
 @RequestMapping("/users")
 public class UserController {
@@ -60,7 +67,7 @@ public class UserController {
         return new UserResponse(user);
     }
 
-    @Operation(summary = "Verify user email", security = {})
+    @Operation(summary = "Verify user email")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Email verified successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid or expired verification token"),
@@ -71,7 +78,7 @@ public class UserController {
         return userService.verifyEmail(token);
     }
 
-    @Operation(summary = "Resend verification email", security = {})
+    @Operation(summary = "Resend verification email")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Verification email resent if account exists"),
             @ApiResponse(responseCode = "400", description = "Email is required")
@@ -79,5 +86,119 @@ public class UserController {
     @PostMapping("/resend-verification")
     public String resendVerificationEmail(@RequestParam String email) {
         return userService.resendVerificationEmail(email);
+    }
+
+    @Operation(summary = "Request password reset email")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Password reset email sent if account exists"),
+            @ApiResponse(responseCode = "400", description = "Email is required")
+    })
+    @PostMapping("/forgot-password")
+    public String forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        return userService.forgotPassword(request);
+    }
+
+    @Operation(summary = "Show password reset form", security = {})
+    @GetMapping("/reset-password")
+    public ResponseEntity<String> showResetPasswordForm(@RequestParam String token) {
+        String escapedToken = HtmlUtils.htmlEscape(token);
+
+        String html = """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Reset password</title>
+                <meta charset="UTF-8">
+                <style>
+                    body {
+                        margin: 0;
+                        min-height: 100vh;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-family: Arial, sans-serif;
+                        background: #f5f5f5;
+                    }
+
+                    .card {
+                        width: 100%;
+                        max-width: 400px;
+                        padding: 32px;
+                        background: white;
+                        border-radius: 12px;
+                        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+                        text-align: center;
+                    }
+
+                    h2 {
+                        margin-top: 0;
+                        margin-bottom: 24px;
+                    }
+
+                    label {
+                        display: block;
+                        margin-bottom: 8px;
+                        text-align: left;
+                    }
+
+                    input {
+                        width: 100%;
+                        box-sizing: border-box;
+                        padding: 10px;
+                        margin-bottom: 20px;
+                        border: 1px solid #ccc;
+                        border-radius: 6px;
+                    }
+
+                    button {
+                        width: 100%;
+                        padding: 12px;
+                        border: none;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 16px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="card">
+                    <h2>Reset your password</h2>
+                    <form method="post" action="/users/reset-password">
+                        <input type="hidden" name="token" value="__TOKEN__" />
+                        <label for="newPassword">New password</label>
+                        <input type="password" id="newPassword" name="newPassword" required />
+                        <button type="submit">Reset password</button>
+                    </form>
+                </div>
+            </body>
+            </html>
+            """.replace("__TOKEN__", escapedToken);
+
+        return ResponseEntity
+                .ok()
+                .contentType(MediaType.TEXT_HTML)
+                .body(html);
+    }
+
+    @Operation(summary = "Reset password using JSON body")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Password reset successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid or expired reset token"),
+            @ApiResponse(responseCode = "403", description = "User account is inactive"),
+            @ApiResponse(responseCode = "404", description = "User not found")
+    })
+    @PostMapping(value = "/reset-password", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public String resetPassword(@RequestBody ResetPasswordRequest request) {
+        return userService.resetPassword(request);
+    }
+
+    @Operation(summary = "Reset password using form")
+    @PostMapping(value = "/reset-password", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public String resetPasswordForm(@RequestParam String token, @RequestParam String newPassword) {
+        ResetPasswordRequest request = new ResetPasswordRequest();
+        request.setToken(token);
+        request.setNewPassword(newPassword);
+
+        return userService.resetPassword(request);
     }
 }

@@ -13,6 +13,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.UUID;
 
+import com.ezielnik.api.auth.ForgotPasswordRequest;
+import com.ezielnik.api.auth.ResetPasswordRequest;
+
 @Service
 public class UserService {
 
@@ -134,5 +137,56 @@ public class UserService {
         emailService.sendVerificationEmail(user.getEmail(), verificationToken);
 
         return "Verification email sent.";
+    }
+
+    public String forgotPassword(ForgotPasswordRequest request) {
+        if (request.getEmail() == null || request.getEmail().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email is required");
+        }
+
+        String email = request.getEmail().trim().toLowerCase();
+
+        User user = userRepository
+                .findByEmailOrUsername(email, email)
+                .orElse(null);
+
+        if (user == null || !user.isActive()) {
+            return "If an account with this email exists, a password reset email has been sent.";
+        }
+
+        String resetToken = jwtService.generatePasswordResetToken(user);
+        emailService.sendPasswordResetEmail(user.getEmail(), resetToken);
+
+        return "If an account with this email exists, a password reset email has been sent.";
+    }
+
+    public String resetPassword(ResetPasswordRequest request) {
+        if (request.getToken() == null || request.getToken().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Reset token is required");
+        }
+
+        if (request.getNewPassword() == null || request.getNewPassword().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "New password is required");
+        }
+
+        UUID userId = jwtService.extractPasswordResetUserId(request.getToken());
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (!user.isActive()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User account is inactive");
+        }
+
+        jwtService.validatePasswordResetTokenForUser(request.getToken(), user);
+
+        if (passwordEncoder.matches(request.getNewPassword(), user.getPasswordHash())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "New password cannot be the same as the current password");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+
+        return "Password reset successfully";
     }
 }
