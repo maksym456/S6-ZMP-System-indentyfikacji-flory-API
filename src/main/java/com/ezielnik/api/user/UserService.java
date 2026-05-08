@@ -211,4 +211,23 @@ public class UserService {
 
         return "Password reset successfully";
     }
+
+    public String deleteMyAccount(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (!user.isActive()) {
+            return "Account is already deleted";
+        }
+
+        user.setActive(false);
+        user.setVerified(false);
+        user.setEmail("deleted-" + user.getId() + "@deleted.local");
+        user.setUsername("deleted-user-" + user.getId());
+        user.setPasswordHash(passwordEncoder.encode(UUID.randomUUID().toString()));
+
+        userRepository.save(user);
+
+        return "Account deleted successfully";
+    }
 }

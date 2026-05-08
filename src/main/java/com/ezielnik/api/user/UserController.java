@@ -67,6 +67,17 @@ public class UserController {
         return new UserResponse(user);
     }
 
+    @Operation(summary = "Delete current user account", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Account deleted successfully"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "404", description = "User not found")
+    })
+    @DeleteMapping("/me")
+    public String deleteMyAccount(@AuthenticationPrincipal Jwt jwt) {
+        return userService.deleteMyAccount(UUID.fromString(jwt.getSubject()));
+    }
+
     @Operation(summary = "Verify user email")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Email verified successfully"),
@@ -98,7 +109,7 @@ public class UserController {
         return userService.forgotPassword(request);
     }
 
-    @Operation(summary = "Show password reset form", security = {})
+    @Operation(summary = "Show password reset form")
     @GetMapping("/reset-password")
     public ResponseEntity<String> showResetPasswordForm(@RequestParam String token) {
         String escapedToken = HtmlUtils.htmlEscape(token);
