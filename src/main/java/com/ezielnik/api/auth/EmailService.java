@@ -51,4 +51,18 @@ public class EmailService {
 
         mailSender.send(message);
     }
+
+    public void sendAdminWarningEmail(String toEmail, String subject, String warningMessage) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(toEmail);
+        message.setSubject(subject);
+        message.setText(
+                "Hello,\n\n" +
+                        warningMessage + "\n\n" +
+                        "This is an administrative warning regarding your account.\n\n" +
+                        "eZielnik Team"
+        );
+
+        mailSender.send(message);
+    }
 }
