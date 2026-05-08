@@ -24,6 +24,7 @@ public class LoginResponse {
         this.email = user.getEmail();
         this.verified = user.isVerified();
         this.token = token;
+        this.admin = user.isAdmin();
 
         if (!user.isVerified()) {
             this.warning = "Email not verified";

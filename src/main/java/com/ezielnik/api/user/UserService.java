@@ -5,6 +5,7 @@ import com.ezielnik.api.auth.JwtService;
 import com.ezielnik.api.auth.LoginRequest;
 import com.ezielnik.api.auth.RegisterRequest;
 import com.ezielnik.api.auth.RegisterResponse;
+import com.ezielnik.api.notification.NotificationService;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,15 +24,17 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final EmailService emailService;
+    private final NotificationService notificationService;
 
     public UserService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
                        JwtService jwtService,
-                       EmailService emailService) {
+                       EmailService emailService, NotificationService notificationService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.emailService = emailService;
+        this.notificationService = notificationService;
     }
 
     private void validatePasswordStrength(String password) {
@@ -313,6 +316,12 @@ public class UserService {
 
         emailService.sendAdminWarningEmail(
                 targetUser.getEmail(),
+                request.getSubject().trim(),
+                request.getMessage().trim()
+        );
+
+        notificationService.createNotification(
+                targetUser,
                 request.getSubject().trim(),
                 request.getMessage().trim()
         );
