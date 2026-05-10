@@ -5,11 +5,11 @@ import java.util.UUID;
 
 public class NotificationResponse {
 
-    private UUID id;
-    private String title;
-    private String message;
-    private boolean read;
-    private OffsetDateTime createdAt;
+    private final UUID id;
+    private final String title;
+    private final String message;
+    private final boolean read;
+    private final OffsetDateTime createdAt;
 
     public NotificationResponse(Notification notification) {
         this.id = notification.getId();
