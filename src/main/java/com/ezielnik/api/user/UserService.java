@@ -5,7 +5,6 @@ import com.ezielnik.api.auth.JwtService;
 import com.ezielnik.api.auth.LoginRequest;
 import com.ezielnik.api.auth.RegisterRequest;
 import com.ezielnik.api.auth.RegisterResponse;
-import com.ezielnik.api.notification.NotificationService;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,17 +23,15 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final EmailService emailService;
-    private final NotificationService notificationService;
 
     public UserService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
                        JwtService jwtService,
-                       EmailService emailService, NotificationService notificationService) {
+                       EmailService emailService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.emailService = emailService;
-        this.notificationService = notificationService;
     }
 
     private void validatePasswordStrength(String password) {
@@ -235,97 +232,5 @@ public class UserService {
         userRepository.save(user);
 
         return "Account deleted successfully";
-    }
-
-    private User getActiveAdmin(UUID adminUserId) {
-        User admin = userRepository.findById(adminUserId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Admin user not found"));
-
-        if (!admin.isActive()) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin account is inactive");
-        }
-
-        if (!admin.isAdmin()) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin access required");
-        }
-
-        return admin;
-    }
-
-    public String banUser(UUID adminUserId, UUID targetUserId) {
-        getActiveAdmin(adminUserId);
-
-        if (adminUserId.equals(targetUserId)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You cannot ban your own account");
-        }
-
-        User targetUser = userRepository.findById(targetUserId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-
-        if (!targetUser.isActive()) {
-            return "User is already inactive";
-        }
-
-        targetUser.setActive(false);
-        userRepository.save(targetUser);
-
-        return "User banned successfully";
-    }
-
-    public String makeAdmin(UUID adminUserId, UUID targetUserId) {
-        getActiveAdmin(adminUserId);
-
-        User targetUser = userRepository.findById(targetUserId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-
-        if (!targetUser.isActive()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User must be active to become an admin");
-        }
-
-        if (!targetUser.isVerified()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User must be verified to become an admin");
-        }
-
-        if (targetUser.isAdmin()) {
-            return "User is already an admin";
-        }
-
-        targetUser.setAdmin(true);
-        userRepository.save(targetUser);
-
-        return "User promoted to admin successfully";
-    }
-
-    public String sendAdminWarning(UUID adminUserId, UUID targetUserId, AdminWarningRequest request) {
-        getActiveAdmin(adminUserId);
-
-        if (request.getSubject() == null || request.getSubject().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Warning subject is required");
-        }
-
-        if (request.getMessage() == null || request.getMessage().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Warning message is required");
-        }
-
-        User targetUser = userRepository.findById(targetUserId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-
-        if (!targetUser.isActive()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot send warning to inactive user");
-        }
-
-        emailService.sendAdminWarningEmail(
-                targetUser.getEmail(),
-                request.getSubject().trim(),
-                request.getMessage().trim()
-        );
-
-        notificationService.createNotification(
-                targetUser,
-                request.getSubject().trim(),
-                request.getMessage().trim()
-        );
-
-        return "Warning sent successfully";
     }
 }

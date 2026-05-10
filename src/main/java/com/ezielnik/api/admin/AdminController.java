@@ -1,4 +1,4 @@
-package com.ezielnik.api.user;
+package com.ezielnik.api.admin;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -9,15 +9,16 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
+import java.util.List;
 
 @RestController
 @RequestMapping("/users")
 public class AdminController {
 
-    private final UserService userService;
+    private final AdminService adminService;
 
-    public AdminController(UserService userService) {
-        this.userService = userService;
+    public AdminController(AdminService adminService) {
+        this.adminService = adminService;
     }
 
     @Operation(
@@ -35,7 +36,7 @@ public class AdminController {
     public String banUser(@AuthenticationPrincipal Jwt jwt,
                           @PathVariable UUID userId) {
         UUID adminUserId = UUID.fromString(jwt.getSubject());
-        return userService.banUser(adminUserId, userId);
+        return adminService.banUser(adminUserId, userId);
     }
 
     @Operation(
@@ -53,7 +54,7 @@ public class AdminController {
     public String makeAdmin(@AuthenticationPrincipal Jwt jwt,
                             @PathVariable UUID userId) {
         UUID adminUserId = UUID.fromString(jwt.getSubject());
-        return userService.makeAdmin(adminUserId, userId);
+        return adminService.makeAdmin(adminUserId, userId);
     }
 
     @Operation(
@@ -72,6 +73,20 @@ public class AdminController {
                                    @PathVariable UUID userId,
                                    @RequestBody AdminWarningRequest request) {
         UUID adminUserId = UUID.fromString(jwt.getSubject());
-        return userService.sendAdminWarning(adminUserId, userId, request);
+        return adminService.sendAdminWarning(adminUserId, userId, request);
+    }
+    @Operation(
+            summary = "List users",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Users returned successfully"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Admin access required")
+    })
+    @GetMapping
+    public List<AdminUserResponse> listUsers(@AuthenticationPrincipal Jwt jwt) {
+        UUID adminUserId = UUID.fromString(jwt.getSubject());
+        return adminService.listUsers(adminUserId);
     }
 }
