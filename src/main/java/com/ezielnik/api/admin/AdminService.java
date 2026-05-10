@@ -132,4 +132,67 @@ public class AdminService {
 
         return "Warning sent successfully";
     }
+
+    public String unbanUser(UUID adminUserId, UUID targetUserId) {
+        getActiveAdmin(adminUserId);
+
+        User targetUser = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (targetUser.getEmail().endsWith("@deleted.local")
+                || targetUser.getUsername().startsWith("deleted-user-")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot unban a deleted account");
+        }
+
+        if (targetUser.isActive()) {
+            return "User is already active";
+        }
+
+        targetUser.setActive(true);
+        userRepository.save(targetUser);
+
+        return "User unbanned successfully";
+    }
+
+    public String removeAdmin(UUID adminUserId, UUID targetUserId) {
+        getActiveAdmin(adminUserId);
+
+        if (adminUserId.equals(targetUserId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You cannot remove your own admin role");
+        }
+
+        User targetUser = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (!targetUser.isAdmin()) {
+            return "User is not an admin";
+        }
+
+        targetUser.setAdmin(false);
+        userRepository.save(targetUser);
+
+        return "Admin role removed successfully";
+    }
+
+    public AdminUsersStatsResponse getStats(UUID adminUserId) {
+        getActiveAdmin(adminUserId);
+
+        List<User> users = userRepository.findAll();
+
+        long totalUsers = users.size();
+        long activeUsers = users.stream().filter(User::isActive).count();
+        long inactiveUsers = totalUsers - activeUsers;
+        long verifiedUsers = users.stream().filter(User::isVerified).count();
+        long unverifiedUsers = totalUsers - verifiedUsers;
+        long admins = users.stream().filter(User::isAdmin).count();
+
+        return new AdminUsersStatsResponse(
+                totalUsers,
+                activeUsers,
+                inactiveUsers,
+                verifiedUsers,
+                unverifiedUsers,
+                admins
+        );
+    }
 }

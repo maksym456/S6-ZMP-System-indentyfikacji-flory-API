@@ -62,4 +62,18 @@ public class NotificationService {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
     }
+
+    public String markAllAsRead(UUID userId) {
+        List<Notification> unreadNotifications =
+                notificationRepository.findByUserIdAndReadFalseOrderByCreatedAtDesc(userId);
+
+        if (unreadNotifications.isEmpty()) {
+            return "No unread notifications";
+        }
+
+        unreadNotifications.forEach(notification -> notification.setRead(true));
+        notificationRepository.saveAll(unreadNotifications);
+
+        return "All notifications marked as read";
+    }
 }

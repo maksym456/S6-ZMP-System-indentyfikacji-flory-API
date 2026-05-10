@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jspecify.annotations.NullMarked;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,14 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RateLimitFilter extends OncePerRequestFilter {
 
     private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
+    private final long capacity;
+    private final long refillMinutes;
+
+    public RateLimitFilter(@Value("${app.rate-limit.capacity}") long capacity,
+                           @Value("${app.rate-limit.refill-minutes}") long refillMinutes) {
+        this.capacity = capacity;
+        this.refillMinutes = refillMinutes;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -61,8 +70,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private Bucket createBucket() {
         return Bucket.builder()
                 .addLimit(limit -> limit
-                        .capacity(20)
-                        .refillIntervally(20, Duration.ofMinutes(1)))
+                        .capacity(capacity)
+                        .refillIntervally(capacity, Duration.ofMinutes(refillMinutes)))
                 .build();
     }
 

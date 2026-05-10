@@ -13,11 +13,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/users")
-public class AdminController {
+public class AdminUserManagementController {
 
     private final AdminService adminService;
 
-    public AdminController(AdminService adminService) {
+    public AdminUserManagementController(AdminService adminService) {
         this.adminService = adminService;
     }
 
@@ -84,9 +84,45 @@ public class AdminController {
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
             @ApiResponse(responseCode = "403", description = "Admin access required")
     })
-    @GetMapping
+    @GetMapping()
     public List<AdminUserResponse> listUsers(@AuthenticationPrincipal Jwt jwt) {
         UUID adminUserId = UUID.fromString(jwt.getSubject());
         return adminService.listUsers(adminUserId);
+    }
+
+    @Operation(
+            summary = "Unban/reactivate user",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "User unbanned successfully"),
+            @ApiResponse(responseCode = "400", description = "Cannot unban deleted account"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Admin access required"),
+            @ApiResponse(responseCode = "404", description = "User not found")
+    })
+    @PatchMapping("/{userId}/unban")
+    public String unbanUser(@AuthenticationPrincipal Jwt jwt,
+                            @PathVariable UUID userId) {
+        UUID adminUserId = UUID.fromString(jwt.getSubject());
+        return adminService.unbanUser(adminUserId, userId);
+    }
+    @Operation(
+            summary = "Remove admin role from user",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Admin role removed successfully"),
+            @ApiResponse(responseCode = "400", description = "Cannot remove your own admin role"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Admin access required"),
+            @ApiResponse(responseCode = "404", description = "User not found")
+    })
+    @PatchMapping("/{userId}/remove-admin")
+    public String removeAdmin(@AuthenticationPrincipal Jwt jwt,
+                              @PathVariable UUID userId) {
+        UUID adminUserId = UUID.fromString(jwt.getSubject());
+        return adminService.removeAdmin(adminUserId, userId);
     }
 }

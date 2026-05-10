@@ -65,4 +65,18 @@ public class NotificationController {
         UUID userId = UUID.fromString(jwt.getSubject());
         return notificationService.markAsRead(userId, notificationId);
     }
+
+    @Operation(
+            summary = "Mark all notifications as read",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "All notifications marked as read"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
+    @PatchMapping("/read-all")
+    public String markAllAsRead(@AuthenticationPrincipal Jwt jwt) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        return notificationService.markAllAsRead(userId);
+    }
 }
