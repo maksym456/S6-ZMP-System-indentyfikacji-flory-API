@@ -1,5 +1,7 @@
 package com.ezielnik.api.config;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
 import jakarta.servlet.FilterChain;
@@ -17,15 +19,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @NullMarked
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class RateLimitFilter extends OncePerRequestFilter {
 
-    private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
+    private final Cache<String, Bucket> buckets;
     private final long capacity;
     private final long refillMinutes;
 
@@ -33,6 +33,10 @@ public class RateLimitFilter extends OncePerRequestFilter {
                            @Value("${app.rate-limit.refill-minutes}") long refillMinutes) {
         this.capacity = capacity;
         this.refillMinutes = refillMinutes;
+        this.buckets = Caffeine.newBuilder()
+                .maximumSize(10_000)
+                .expireAfterAccess(Duration.ofMinutes(100))
+                .build();
     }
 
     @Override
@@ -42,11 +46,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
         String clientKey = resolveClientKey(request);
 
-        Bucket bucket = buckets.get(clientKey);
+        Bucket bucket = buckets.getIfPresent(clientKey);
 
         if (bucket == null) {
             Bucket newBucket = createBucket();
-            Bucket existingBucket = buckets.putIfAbsent(clientKey, newBucket);
+            Bucket existingBucket = buckets.asMap().putIfAbsent(clientKey, newBucket);
             bucket = existingBucket == null ? newBucket : existingBucket;
         }
 
@@ -76,12 +80,6 @@ public class RateLimitFilter extends OncePerRequestFilter {
     }
 
     private String resolveClientKey(HttpServletRequest request) {
-        String forwardedFor = request.getHeader("X-Forwarded-For");
-
-        if (forwardedFor != null && !forwardedFor.isBlank()) {
-            return forwardedFor.split(",")[0].trim();
-        }
-
         return request.getRemoteAddr();
     }
 }
