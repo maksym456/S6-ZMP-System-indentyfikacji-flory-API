@@ -1,6 +1,6 @@
 package com.ezielnik.api.admin;
 
-public class AdminUsersStatsResponse {
+public class AdminUserStatsResponse {
 
     private long totalUsers;
     private long activeUsers;
@@ -9,12 +9,12 @@ public class AdminUsersStatsResponse {
     private long unverifiedUsers;
     private long admins;
 
-    public AdminUsersStatsResponse(long totalUsers,
-                                   long activeUsers,
-                                   long inactiveUsers,
-                                   long verifiedUsers,
-                                   long unverifiedUsers,
-                                   long admins) {
+    public AdminUserStatsResponse(long totalUsers,
+                                  long activeUsers,
+                                  long inactiveUsers,
+                                  long verifiedUsers,
+                                  long unverifiedUsers,
+                                  long admins) {
         this.totalUsers = totalUsers;
         this.activeUsers = activeUsers;
         this.inactiveUsers = inactiveUsers;

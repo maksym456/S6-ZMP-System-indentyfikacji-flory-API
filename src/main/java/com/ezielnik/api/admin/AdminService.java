@@ -174,7 +174,7 @@ public class AdminService {
         return "Admin role removed successfully";
     }
 
-    public AdminUsersStatsResponse getStats(UUID adminUserId) {
+    public AdminUserStatsResponse getStats(UUID adminUserId) {
         getActiveAdmin(adminUserId);
 
         List<User> users = userRepository.findAll();
@@ -186,7 +186,7 @@ public class AdminService {
         long unverifiedUsers = totalUsers - verifiedUsers;
         long admins = users.stream().filter(User::isAdmin).count();
 
-        return new AdminUsersStatsResponse(
+        return new AdminUserStatsResponse(
                 totalUsers,
                 activeUsers,
                 inactiveUsers,

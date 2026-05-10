@@ -32,7 +32,7 @@ public class AdminStatsController {
             @ApiResponse(responseCode = "403", description = "Admin access required")
     })
     @GetMapping("/users")
-    public AdminUsersStatsResponse getUserStats(@AuthenticationPrincipal Jwt jwt) {
+    public AdminUserStatsResponse getUserStats(@AuthenticationPrincipal Jwt jwt) {
         UUID adminUserId = UUID.fromString(jwt.getSubject());
         return adminService.getStats(adminUserId);
     }
