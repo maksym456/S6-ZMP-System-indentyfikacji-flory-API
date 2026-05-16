@@ -7,6 +7,7 @@ import com.ezielnik.api.auth.RegisterRequest;
 import com.ezielnik.api.auth.RegisterResponse;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.mail.MailException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -89,7 +90,17 @@ public class UserService {
         User savedUser = userRepository.save(user);
 
         String verificationToken = jwtService.generateEmailVerificationToken(savedUser);
-        emailService.sendVerificationEmail(savedUser.getEmail(), verificationToken);
+
+        try {
+            emailService.sendVerificationEmail(savedUser.getEmail(), verificationToken);
+        } catch (MailException e) {
+            return new RegisterResponse(
+                    "User registered successfully. We could not send the verification email — please use the resend verification option.",
+                    savedUser.getId(),
+                    savedUser.getUsername(),
+                    savedUser.getEmail()
+            );
+        }
 
         return new RegisterResponse(
                 "User registered successfully. Please verify your email.",
