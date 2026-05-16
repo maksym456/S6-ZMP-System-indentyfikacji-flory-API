@@ -9,6 +9,7 @@ import com.ezielnik.api.auth.RegisterResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.UUID;
@@ -56,6 +57,7 @@ public class UserService {
         }
     }
 
+    @Transactional
     public RegisterResponse register(RegisterRequest request) {
         if (request.getUsername() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is required");
@@ -97,6 +99,7 @@ public class UserService {
         );
     }
 
+    @Transactional(readOnly = true)
     public User login(LoginRequest request) {
         if (request.getLogin() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username or email is required");
@@ -122,11 +125,13 @@ public class UserService {
         return user;
     }
 
+    @Transactional(readOnly = true)
     public User me(UUID userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
     }
 
+    @Transactional
     public String verifyEmail(String token) {
         UUID userId = jwtService.extractEmailVerificationUserId(token);
 
@@ -143,6 +148,7 @@ public class UserService {
         return "Email verified successfully";
     }
 
+    @Transactional(readOnly = true)
     public String resendVerificationEmail(String email) {
         if (email == null || email.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email is required");
@@ -166,6 +172,7 @@ public class UserService {
         return "Verification email sent.";
     }
 
+    @Transactional(readOnly = true)
     public String forgotPassword(ForgotPasswordRequest request) {
         if (request.getEmail() == null || request.getEmail().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email is required");
@@ -187,6 +194,7 @@ public class UserService {
         return "If an account with this email exists, a password reset email has been sent.";
     }
 
+    @Transactional
     public String resetPassword(ResetPasswordRequest request) {
         if (request.getToken() == null || request.getToken().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Reset token is required");
@@ -215,6 +223,7 @@ public class UserService {
         return "Password reset successfully";
     }
 
+    @Transactional
     public String deleteMyAccount(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));

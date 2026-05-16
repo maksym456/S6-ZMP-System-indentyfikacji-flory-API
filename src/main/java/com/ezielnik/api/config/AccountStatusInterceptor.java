@@ -75,6 +75,7 @@ public class AccountStatusInterceptor implements HandlerInterceptor {
                 || path.equals("/users/resend-verification")
                 || path.equals("/users/forgot-password")
                 || path.equals("/users/reset-password")
+                || path.equals("/herbaria/public")
                 || path.startsWith("/v3/api-docs")
                 || path.startsWith("/swagger-ui")
                 || path.equals("/swagger-ui.html")

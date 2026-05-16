@@ -4,6 +4,7 @@ import com.ezielnik.api.user.User;
 import com.ezielnik.api.user.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -21,6 +22,7 @@ public class HerbariumService {
         this.userRepository = userRepository;
     }
 
+    @Transactional
     public HerbariumResponse createHerbarium(UUID userId, HerbariumRequest request) {
         if (request.getName() == null || request.getName().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Herbarium name is required");
@@ -41,6 +43,7 @@ public class HerbariumService {
         return new HerbariumResponse(savedHerbarium);
     }
 
+    @Transactional(readOnly = true)
     public List<HerbariumResponse> getMyHerbaria(UUID userId) {
         return herbariumRepository.findByUser_IdOrderByCreatedAtDesc(userId)
                 .stream()
@@ -48,6 +51,7 @@ public class HerbariumService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public HerbariumResponse getHerbarium(UUID userId, UUID herbariumId) {
         Herbarium herbarium = herbariumRepository.findById(herbariumId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Herbarium not found"));
@@ -59,6 +63,7 @@ public class HerbariumService {
         return new HerbariumResponse(herbarium);
     }
 
+    @Transactional
     public HerbariumResponse updateHerbarium(UUID userId, UUID herbariumId, HerbariumRequest request) {
         Herbarium herbarium = herbariumRepository.findById(herbariumId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Herbarium not found"));
@@ -80,6 +85,7 @@ public class HerbariumService {
         return new HerbariumResponse(savedHerbarium);
     }
 
+    @Transactional
     public String deleteHerbarium(UUID userId, UUID herbariumId) {
         Herbarium herbarium = herbariumRepository.findById(herbariumId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Herbarium not found"));
@@ -93,6 +99,7 @@ public class HerbariumService {
         return "Herbarium deleted successfully";
     }
 
+    @Transactional(readOnly = true)
     public List<HerbariumResponse> getPublicHerbaria() {
         return herbariumRepository.findByIsPublicTrueOrderByCreatedAtDesc()
                 .stream()

@@ -6,6 +6,7 @@ import com.ezielnik.api.user.User;
 import com.ezielnik.api.user.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -44,6 +45,7 @@ public class AdminService {
         return admin;
     }
 
+    @Transactional(readOnly = true)
     public List<AdminUserResponse> listUsers(UUID adminUserId) {
         getActiveAdmin(adminUserId);
 
@@ -53,6 +55,7 @@ public class AdminService {
                 .toList();
     }
 
+    @Transactional
     public String banUser(UUID adminUserId, UUID targetUserId) {
         getActiveAdmin(adminUserId);
 
@@ -73,6 +76,7 @@ public class AdminService {
         return "User banned successfully";
     }
 
+    @Transactional
     public String makeAdmin(UUID adminUserId, UUID targetUserId) {
         getActiveAdmin(adminUserId);
 
@@ -97,6 +101,7 @@ public class AdminService {
         return "User promoted to admin successfully";
     }
 
+    @Transactional
     public String sendAdminWarning(UUID adminUserId, UUID targetUserId, AdminWarningRequest request) {
         getActiveAdmin(adminUserId);
 
@@ -133,6 +138,7 @@ public class AdminService {
         return "Warning sent successfully";
     }
 
+    @Transactional
     public String unbanUser(UUID adminUserId, UUID targetUserId) {
         getActiveAdmin(adminUserId);
 
@@ -154,6 +160,7 @@ public class AdminService {
         return "User unbanned successfully";
     }
 
+    @Transactional
     public String removeAdmin(UUID adminUserId, UUID targetUserId) {
         getActiveAdmin(adminUserId);
 
@@ -174,6 +181,7 @@ public class AdminService {
         return "Admin role removed successfully";
     }
 
+    @Transactional(readOnly = true)
     public AdminUserStatsResponse getStats(UUID adminUserId) {
         getActiveAdmin(adminUserId);
 
