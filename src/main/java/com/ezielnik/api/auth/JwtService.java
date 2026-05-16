@@ -24,16 +24,16 @@ import java.util.Base64;
 @Service
 public class JwtService {
     private final JwtProperties jwtProperties;
+    private final SecretKey key;
 
     public JwtService(JwtProperties jwtProperties) {
         this.jwtProperties = jwtProperties;
+        this.key = Keys.hmacShaKeyFor(
+                jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8)
+        );
     }
 
     public String extractUserId(String token) {
-        SecretKey key = Keys.hmacShaKeyFor(
-                jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8)
-        );
-
         return Jwts.parser()
                 .verifyWith(key)
                 .build()
@@ -43,9 +43,6 @@ public class JwtService {
     }
     
     public String generateToken(User user) {
-        SecretKey key = Keys.hmacShaKeyFor(
-                jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8)
-        );
         long now = System.currentTimeMillis();
         return Jwts.builder()
                 .subject(user.getId().toString())
@@ -57,10 +54,6 @@ public class JwtService {
                 .compact();
     }
     public String generateEmailVerificationToken(User user) {
-        SecretKey key = Keys.hmacShaKeyFor(
-                jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8)
-        );
-
         long now = System.currentTimeMillis();
         long verificationExpirationMs = 15 * 60 * 1000; // 15 minutes
 
@@ -75,10 +68,6 @@ public class JwtService {
     }
 
     public UUID extractEmailVerificationUserId(String token) {
-        SecretKey key = Keys.hmacShaKeyFor(
-                jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8)
-        );
-
         try {
             Claims claims = Jwts.parser()
                     .verifyWith(key)
@@ -103,10 +92,6 @@ public class JwtService {
     }
 
     public String generatePasswordResetToken(User user) {
-        SecretKey key = Keys.hmacShaKeyFor(
-                jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8)
-        );
-
         long now = System.currentTimeMillis();
         long resetExpirationMs = 15 * 60 * 1000; // 15 minutes
 
@@ -123,10 +108,6 @@ public class JwtService {
     }
 
     public UUID extractPasswordResetUserId(String token) {
-        SecretKey key = Keys.hmacShaKeyFor(
-                jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8)
-        );
-
         try {
             Claims claims = Jwts.parser()
                     .verifyWith(key)
@@ -150,10 +131,6 @@ public class JwtService {
         }
     }
     public void validatePasswordResetTokenForUser(String token, User user) {
-        SecretKey key = Keys.hmacShaKeyFor(
-                jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8)
-        );
-
         try {
             Claims claims = Jwts.parser()
                     .verifyWith(key)
