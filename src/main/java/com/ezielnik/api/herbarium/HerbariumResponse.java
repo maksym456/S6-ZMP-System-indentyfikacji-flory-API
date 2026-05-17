@@ -10,15 +10,17 @@ public class HerbariumResponse {
     private final String name;
     private final String description;
     private final boolean isPublic;
+    private final long plantCount;
     private final OffsetDateTime createdAt;
     private final OffsetDateTime updatedAt;
 
-    public HerbariumResponse(Herbarium herbarium) {
+    public HerbariumResponse(Herbarium herbarium, long plantCount) {
         this.id = herbarium.getId();
         this.userId = herbarium.getUserId();
         this.name = herbarium.getName();
         this.description = herbarium.getDescription();
         this.isPublic = herbarium.isPublic();
+        this.plantCount = plantCount;
         this.createdAt = herbarium.getCreatedAt();
         this.updatedAt = herbarium.getUpdatedAt();
     }
@@ -45,6 +47,10 @@ public class HerbariumResponse {
 
     public OffsetDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public long getPlantCount() {
+        return plantCount;
     }
 
     public OffsetDateTime getUpdatedAt() {

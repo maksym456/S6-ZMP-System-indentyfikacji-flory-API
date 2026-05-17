@@ -1,5 +1,8 @@
 package com.ezielnik.api.herbarium;
 
+import com.ezielnik.api.plant.PhotoStorageService;
+import com.ezielnik.api.plant.Plant;
+import com.ezielnik.api.plant.PlantRepository;
 import com.ezielnik.api.user.User;
 import com.ezielnik.api.user.UserRepository;
 import org.springframework.http.HttpStatus;
@@ -15,11 +18,17 @@ public class HerbariumService {
 
     private final HerbariumRepository herbariumRepository;
     private final UserRepository userRepository;
+    private final PlantRepository plantRepository;
+    private final PhotoStorageService photoStorageService;
 
     public HerbariumService(HerbariumRepository herbariumRepository,
-                            UserRepository userRepository) {
+                            UserRepository userRepository,
+                            PlantRepository plantRepository,
+                            PhotoStorageService photoStorageService) {
         this.herbariumRepository = herbariumRepository;
         this.userRepository = userRepository;
+        this.plantRepository = plantRepository;
+        this.photoStorageService = photoStorageService;
     }
 
     @Transactional
@@ -40,14 +49,14 @@ public class HerbariumService {
 
         Herbarium savedHerbarium = herbariumRepository.save(herbarium);
 
-        return new HerbariumResponse(savedHerbarium);
+        return new HerbariumResponse(savedHerbarium, 0);
     }
 
     @Transactional(readOnly = true)
     public List<HerbariumResponse> getMyHerbaria(UUID userId) {
         return herbariumRepository.findByUser_IdOrderByCreatedAtDesc(userId)
                 .stream()
-                .map(HerbariumResponse::new)
+                .map(h -> new HerbariumResponse(h, plantRepository.countByHerbarium_Id(h.getId())))
                 .toList();
     }
 
@@ -60,7 +69,7 @@ public class HerbariumService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You cannot access this herbarium");
         }
 
-        return new HerbariumResponse(herbarium);
+        return new HerbariumResponse(herbarium, plantRepository.countByHerbarium_Id(herbariumId));
     }
 
     @Transactional
@@ -82,7 +91,7 @@ public class HerbariumService {
 
         Herbarium savedHerbarium = herbariumRepository.save(herbarium);
 
-        return new HerbariumResponse(savedHerbarium);
+        return new HerbariumResponse(savedHerbarium, plantRepository.countByHerbarium_Id(savedHerbarium.getId()));
     }
 
     @Transactional
@@ -94,6 +103,10 @@ public class HerbariumService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You cannot delete this herbarium");
         }
 
+        plantRepository.findByHerbarium_IdOrderByCreatedAtDesc(herbariumId)
+                .forEach(plant -> photoStorageService.delete(plant.getPhotoUrl()));
+
+        plantRepository.deleteByHerbarium_Id(herbariumId);
         herbariumRepository.delete(herbarium);
 
         return "Herbarium deleted successfully";
@@ -103,7 +116,7 @@ public class HerbariumService {
     public List<HerbariumResponse> getPublicHerbaria() {
         return herbariumRepository.findByIsPublicTrueOrderByCreatedAtDesc()
                 .stream()
-                .map(HerbariumResponse::new)
+                .map(h -> new HerbariumResponse(h, plantRepository.countByHerbarium_Id(h.getId())))
                 .toList();
     }
 }

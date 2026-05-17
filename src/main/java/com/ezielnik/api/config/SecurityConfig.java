@@ -37,8 +37,8 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/v3/api-docs.yaml",
-                                "/herbaria/public"
-
+                                "/herbaria/public",
+                                "/photos/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

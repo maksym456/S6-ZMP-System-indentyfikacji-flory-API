@@ -7,13 +7,18 @@ services:
       POSTGRES_PASSWORD: postgres
 
   app:
-    build: .
+    build: ../../Desktop
     ports:
       - "8080:8080"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/postgres
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
-      JWT_EXPIRATION_MS: 604800000
+      PHOTO_STORAGE_PATH: /app/photos
+    volumes:
+      - photos:/app/photos
     depends_on:
       - postgres
+
+volumes:
+  photos:
