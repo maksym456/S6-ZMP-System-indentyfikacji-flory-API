@@ -7,7 +7,8 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "herbaria", schema = "public")
+@Table(name = "herbaria", schema = "public",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "name"}))
 public class Herbarium {
 
     @Id

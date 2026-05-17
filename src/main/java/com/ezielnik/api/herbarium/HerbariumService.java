@@ -1,6 +1,7 @@
 package com.ezielnik.api.herbarium;
 
-import com.ezielnik.api.plant.PhotoStorageService;
+import com.ezielnik.api.photo.PhotoStorageService;
+import com.ezielnik.api.photo.PlantPhotoRepository;
 import com.ezielnik.api.plant.Plant;
 import com.ezielnik.api.plant.PlantRepository;
 import com.ezielnik.api.user.User;
@@ -19,15 +20,18 @@ public class HerbariumService {
     private final HerbariumRepository herbariumRepository;
     private final UserRepository userRepository;
     private final PlantRepository plantRepository;
+    private final PlantPhotoRepository plantPhotoRepository;
     private final PhotoStorageService photoStorageService;
 
     public HerbariumService(HerbariumRepository herbariumRepository,
                             UserRepository userRepository,
                             PlantRepository plantRepository,
+                            PlantPhotoRepository plantPhotoRepository,
                             PhotoStorageService photoStorageService) {
         this.herbariumRepository = herbariumRepository;
         this.userRepository = userRepository;
         this.plantRepository = plantRepository;
+        this.plantPhotoRepository = plantPhotoRepository;
         this.photoStorageService = photoStorageService;
     }
 
@@ -37,12 +41,18 @@ public class HerbariumService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Herbarium name is required");
         }
 
+        String name = request.getName().trim();
+
+        if (herbariumRepository.existsByUser_IdAndName(userId, name)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "A herbarium with this name already exists");
+        }
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         Herbarium herbarium = new Herbarium(
                 user,
-                request.getName().trim(),
+                name,
                 request.getDescription() == null ? null : request.getDescription().trim(),
                 request.isPublic()
         );
@@ -85,7 +95,13 @@ public class HerbariumService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Herbarium name is required");
         }
 
-        herbarium.setName(request.getName());
+        String newName = request.getName().trim();
+
+        if (!herbarium.getName().equals(newName) && herbariumRepository.existsByUser_IdAndName(userId, newName)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "A herbarium with this name already exists");
+        }
+
+        herbarium.setName(newName);
         herbarium.setDescription(request.getDescription());
         herbarium.setPublic(request.isPublic());
 
@@ -103,8 +119,13 @@ public class HerbariumService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You cannot delete this herbarium");
         }
 
-        plantRepository.findByHerbarium_IdOrderByCreatedAtDesc(herbariumId)
-                .forEach(plant -> photoStorageService.delete(plant.getPhotoUrl()));
+        List<Plant> plants = plantRepository.findByHerbarium_IdOrderByCreatedAtDesc(herbariumId);
+        if (!plants.isEmpty()) {
+            List<UUID> plantIds = plants.stream().map(Plant::getId).toList();
+            plantPhotoRepository.findByPlant_IdInOrderByCreatedAtAsc(plantIds)
+                    .forEach(photo -> photoStorageService.delete(photo.getUrl()));
+            plantPhotoRepository.deleteByPlant_IdIn(plantIds);
+        }
 
         plantRepository.deleteByHerbarium_Id(herbariumId);
         herbariumRepository.delete(herbarium);
