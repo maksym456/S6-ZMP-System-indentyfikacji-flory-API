@@ -1,5 +1,12 @@
 package com.ezielnik.api.photo;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import com.ezielnik.api.friend.FriendshipRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -32,14 +39,23 @@ public class PhotoController {
     );
 
     private final PlantPhotoRepository plantPhotoRepository;
+    private final FriendshipRepository friendshipRepository;
     private final Path storageRoot;
 
     public PhotoController(PlantPhotoRepository plantPhotoRepository,
+                           FriendshipRepository friendshipRepository,
                            @Value("${app.photo-storage-path}") String storagePath) {
         this.plantPhotoRepository = plantPhotoRepository;
+        this.friendshipRepository = friendshipRepository;
         this.storageRoot = Paths.get(storagePath).toAbsolutePath().normalize();
     }
 
+    @Operation(summary = "Serve a plant photo file")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Photo returned"),
+            @ApiResponse(responseCode = "403", description = "Photo belongs to a private herbarium"),
+            @ApiResponse(responseCode = "404", description = "Photo not found")
+    })
     @GetMapping("/{filename:.+}")
     public ResponseEntity<Resource> getPhoto(@PathVariable String filename) {
         String photoUrl = "/photos/" + filename;
@@ -49,8 +65,10 @@ public class PhotoController {
 
         if (!plantPhoto.getPlant().getHerbarium().isPublic()) {
             UUID authenticatedUserId = getAuthenticatedUserId();
+            UUID ownerId = plantPhoto.getPlant().getHerbarium().getUserId();
             if (authenticatedUserId == null
-                    || !plantPhoto.getPlant().getHerbarium().getUserId().equals(authenticatedUserId)) {
+                    || (!ownerId.equals(authenticatedUserId)
+                        && !friendshipRepository.areFriends(authenticatedUserId, ownerId))) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You cannot access this photo");
             }
         }

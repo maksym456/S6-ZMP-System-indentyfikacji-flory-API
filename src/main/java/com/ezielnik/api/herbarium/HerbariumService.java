@@ -1,5 +1,6 @@
 package com.ezielnik.api.herbarium;
 
+import com.ezielnik.api.friend.FriendshipRepository;
 import com.ezielnik.api.photo.PhotoStorageService;
 import com.ezielnik.api.photo.PlantPhotoRepository;
 import com.ezielnik.api.plant.Plant;
@@ -22,17 +23,20 @@ public class HerbariumService {
     private final PlantRepository plantRepository;
     private final PlantPhotoRepository plantPhotoRepository;
     private final PhotoStorageService photoStorageService;
+    private final FriendshipRepository friendshipRepository;
 
     public HerbariumService(HerbariumRepository herbariumRepository,
                             UserRepository userRepository,
                             PlantRepository plantRepository,
                             PlantPhotoRepository plantPhotoRepository,
-                            PhotoStorageService photoStorageService) {
+                            PhotoStorageService photoStorageService,
+                            FriendshipRepository friendshipRepository) {
         this.herbariumRepository = herbariumRepository;
         this.userRepository = userRepository;
         this.plantRepository = plantRepository;
         this.plantPhotoRepository = plantPhotoRepository;
         this.photoStorageService = photoStorageService;
+        this.friendshipRepository = friendshipRepository;
     }
 
     @Transactional
@@ -75,7 +79,9 @@ public class HerbariumService {
         Herbarium herbarium = herbariumRepository.findById(herbariumId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Herbarium not found"));
 
-        if (!herbarium.getUserId().equals(userId) && !herbarium.isPublic()) {
+        if (!herbarium.getUserId().equals(userId) && !herbarium.isPublic()
+                && !isAdmin(userId)
+                && !friendshipRepository.areFriends(userId, herbarium.getUserId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You cannot access this herbarium");
         }
 
@@ -131,6 +137,22 @@ public class HerbariumService {
         herbariumRepository.delete(herbarium);
 
         return "Herbarium deleted successfully";
+    }
+
+    private boolean isAdmin(UUID userId) {
+        return userRepository.findById(userId).map(com.ezielnik.api.user.User::isAdmin).orElse(false);
+    }
+
+    @Transactional(readOnly = true)
+    public List<HerbariumResponse> getUserHerbaria(UUID viewerId, UUID targetUserId) {
+        boolean isFriend = friendshipRepository.areFriends(viewerId, targetUserId);
+        boolean isAdmin = isAdmin(viewerId);
+
+        return herbariumRepository.findByUser_IdOrderByCreatedAtDesc(targetUserId)
+                .stream()
+                .filter(h -> h.isPublic() || isFriend || isAdmin)
+                .map(h -> new HerbariumResponse(h, plantRepository.countByHerbarium_Id(h.getId())))
+                .toList();
     }
 
     @Transactional(readOnly = true)

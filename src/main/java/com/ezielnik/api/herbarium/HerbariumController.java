@@ -28,9 +28,10 @@ public class HerbariumController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Herbarium created successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid request"),
+            @ApiResponse(responseCode = "400", description = "Invalid request or name already exists"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Email verification required")
+            @ApiResponse(responseCode = "403", description = "Account inactive or email not verified"),
+            @ApiResponse(responseCode = "409", description = "A herbarium with this name already exists")
     })
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
@@ -47,7 +48,7 @@ public class HerbariumController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Herbaria returned successfully"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Email verification required")
+            @ApiResponse(responseCode = "403", description = "Account inactive or email not verified")
     })
     @GetMapping("/me")
     public List<HerbariumResponse> getMyHerbaria(@AuthenticationPrincipal Jwt jwt) {
@@ -64,6 +65,19 @@ public class HerbariumController {
         return herbariumService.getPublicHerbaria();
     }
 
+    @Operation(summary = "Get another user's herbaria (public ones, or all if friends)",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Herbaria returned successfully"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Account inactive or email not verified")
+    })
+    @GetMapping("/user/{userId}")
+    public List<HerbariumResponse> getUserHerbaria(@AuthenticationPrincipal Jwt jwt,
+                                                    @PathVariable UUID userId) {
+        return herbariumService.getUserHerbaria(UUID.fromString(jwt.getSubject()), userId);
+    }
+
     @Operation(
             summary = "Get herbarium by ID",
             security = @SecurityRequirement(name = "bearerAuth")
@@ -71,7 +85,7 @@ public class HerbariumController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Herbarium returned successfully"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "You cannot access this herbarium"),
+            @ApiResponse(responseCode = "403", description = "Private herbarium, account inactive, or email not verified"),
             @ApiResponse(responseCode = "404", description = "Herbarium not found")
     })
     @GetMapping("/{herbariumId}")
@@ -87,10 +101,11 @@ public class HerbariumController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Herbarium updated successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid request"),
+            @ApiResponse(responseCode = "400", description = "Name is required"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "You cannot update this herbarium"),
-            @ApiResponse(responseCode = "404", description = "Herbarium not found")
+            @ApiResponse(responseCode = "403", description = "Not your herbarium, account inactive, or email not verified"),
+            @ApiResponse(responseCode = "404", description = "Herbarium not found"),
+            @ApiResponse(responseCode = "409", description = "A herbarium with this name already exists")
     })
     @PatchMapping("/{herbariumId}")
     public HerbariumResponse updateHerbarium(@AuthenticationPrincipal Jwt jwt,
@@ -107,7 +122,7 @@ public class HerbariumController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Herbarium deleted successfully"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "You cannot delete this herbarium"),
+            @ApiResponse(responseCode = "403", description = "Not your herbarium, account inactive, or email not verified"),
             @ApiResponse(responseCode = "404", description = "Herbarium not found")
     })
     @DeleteMapping("/{herbariumId}")

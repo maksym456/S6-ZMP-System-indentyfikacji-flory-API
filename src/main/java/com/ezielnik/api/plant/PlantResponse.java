@@ -12,7 +12,6 @@ public class PlantResponse {
     private final UUID id;
     private final UUID herbariumId;
     private final String name;
-    private final boolean isRecognized;
     private final String detectedSpecies;
     private final String speciesId;
     private final String family;
@@ -26,7 +25,6 @@ public class PlantResponse {
         this.id = plant.getId();
         this.herbariumId = plant.getHerbariumId();
         this.name = plant.getName();
-        this.isRecognized = plant.isRecognized();
         this.detectedSpecies = plant.getDetectedSpecies();
         this.speciesId = plant.getSpeciesId();
         this.family = plant.getFamily();
@@ -47,10 +45,6 @@ public class PlantResponse {
 
     public String getName() {
         return name;
-    }
-
-    public boolean isRecognized() {
-        return isRecognized;
     }
 
     public String getDetectedSpecies() {

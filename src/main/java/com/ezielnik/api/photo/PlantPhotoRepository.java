@@ -20,4 +20,10 @@ public interface PlantPhotoRepository extends JpaRepository<PlantPhoto, UUID> {
     void deleteByPlant_Id(UUID plantId);
 
     void deleteByPlant_IdIn(Collection<UUID> plantIds);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(p) FROM PlantPhoto p WHERE p.plant.herbarium.user.id = :userId")
+    long countByUserId(@org.springframework.data.repository.query.Param("userId") UUID userId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(p) FROM PlantPhoto p WHERE p.plant.herbarium.id = :herbariumId")
+    long countByHerbariumId(@org.springframework.data.repository.query.Param("herbariumId") UUID herbariumId);
 }

@@ -18,5 +18,10 @@ public interface PlantRepository extends JpaRepository<Plant, UUID> {
 
     Optional<Plant> findByHerbarium_IdAndDetectedSpecies(UUID herbariumId, String detectedSpecies);
 
-    List<Plant> findByHerbarium_IdAndIsRecognizedFalse(UUID herbariumId);
+    List<Plant> findByHerbarium_IdAndDetectedSpeciesStartingWith(UUID herbariumId, String prefix);
+
+    long countByDetectedSpeciesStartingWith(String prefix);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(p) FROM Plant p WHERE p.herbarium.user.id = :userId")
+    long countByUserId(@org.springframework.data.repository.query.Param("userId") java.util.UUID userId);
 }

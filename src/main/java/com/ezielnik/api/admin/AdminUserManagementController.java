@@ -111,7 +111,6 @@ public class AdminUserManagementController {
             summary = "Remove admin role from user",
             security = @SecurityRequirement(name = "bearerAuth")
     )
-
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Admin role removed successfully"),
             @ApiResponse(responseCode = "400", description = "Cannot remove your own admin role"),
@@ -124,5 +123,22 @@ public class AdminUserManagementController {
                               @PathVariable UUID userId) {
         UUID adminUserId = UUID.fromString(jwt.getSubject());
         return adminService.removeAdmin(adminUserId, userId);
+    }
+
+    @Operation(
+            summary = "Permanently delete a user account",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "User deleted successfully"),
+            @ApiResponse(responseCode = "400", description = "Cannot delete your own account"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Admin access required or account inactive/unverified"),
+            @ApiResponse(responseCode = "404", description = "User not found")
+    })
+    @DeleteMapping("/{userId}")
+    public String deleteUser(@AuthenticationPrincipal Jwt jwt,
+                             @PathVariable UUID userId) {
+        return adminService.adminDeleteUser(UUID.fromString(jwt.getSubject()), userId);
     }
 }

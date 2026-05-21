@@ -12,4 +12,8 @@ public interface HerbariumRepository extends JpaRepository<Herbarium, UUID> {
     List<Herbarium> findByIsPublicTrueOrderByCreatedAtDesc();
 
     boolean existsByUser_IdAndName(UUID userId, String name);
+
+    long countByIsPublicTrue();
+
+    long countByUser_Id(UUID userId);
 }

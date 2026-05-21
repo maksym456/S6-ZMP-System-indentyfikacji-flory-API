@@ -27,7 +27,8 @@ public class NotificationController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Notifications returned"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized")
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Account inactive or email not verified")
     })
     @GetMapping
     public List<NotificationResponse> getMyNotifications(@AuthenticationPrincipal Jwt jwt) {
@@ -41,7 +42,8 @@ public class NotificationController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Unread notifications returned"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized")
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Account inactive or email not verified")
     })
     @GetMapping("/unread")
     public List<NotificationResponse> getMyUnreadNotifications(@AuthenticationPrincipal Jwt jwt) {
@@ -56,7 +58,7 @@ public class NotificationController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Notification marked as read"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "You cannot access this notification"),
+            @ApiResponse(responseCode = "403", description = "Not your notification, account inactive, or email not verified"),
             @ApiResponse(responseCode = "404", description = "Notification not found")
     })
     @PatchMapping("/{notificationId}/read")

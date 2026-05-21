@@ -57,6 +57,10 @@ public class UserController {
     }
 
     @Operation(summary = "Get current user", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Current user returned"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
     @GetMapping("/me")
     public UserResponse me(@AuthenticationPrincipal Jwt jwt) {
         User user = userService.me(UUID.fromString(jwt.getSubject()));
@@ -106,6 +110,10 @@ public class UserController {
     }
 
     @Operation(summary = "Show password reset form")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "HTML reset form returned"),
+            @ApiResponse(responseCode = "400", description = "Token is required")
+    })
     @GetMapping("/reset-password")
     public ResponseEntity<String> showResetPasswordForm(@RequestParam String token) {
         String escapedToken = HtmlUtils.htmlEscape(token);
@@ -200,6 +208,12 @@ public class UserController {
     }
 
     @Operation(summary = "Reset password using form")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Password reset successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid or expired reset token"),
+            @ApiResponse(responseCode = "403", description = "User account is inactive"),
+            @ApiResponse(responseCode = "404", description = "User not found")
+    })
     @PostMapping(value = "/reset-password", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public String resetPasswordForm(@RequestParam String token, @RequestParam String newPassword) {
         ResetPasswordRequest request = new ResetPasswordRequest();

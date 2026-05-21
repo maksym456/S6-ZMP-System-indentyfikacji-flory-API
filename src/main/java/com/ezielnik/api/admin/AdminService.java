@@ -1,10 +1,23 @@
 package com.ezielnik.api.admin;
 
 import com.ezielnik.api.auth.EmailService;
+import com.ezielnik.api.friend.FriendResponse;
+import com.ezielnik.api.friend.Friendship;
+import com.ezielnik.api.friend.FriendshipRepository;
+import com.ezielnik.api.friend.FriendshipStatus;
+import com.ezielnik.api.herbarium.Herbarium;
+import com.ezielnik.api.herbarium.HerbariumRepository;
+import com.ezielnik.api.herbarium.HerbariumResponse;
 import com.ezielnik.api.notification.NotificationService;
+import com.ezielnik.api.photo.PhotoStorageService;
+import com.ezielnik.api.photo.PlantPhoto;
+import com.ezielnik.api.photo.PlantPhotoRepository;
+import com.ezielnik.api.plant.Plant;
+import com.ezielnik.api.plant.PlantRepository;
 import com.ezielnik.api.user.User;
 import com.ezielnik.api.user.UserRepository;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -16,15 +29,33 @@ import java.util.UUID;
 public class AdminService {
 
     private final UserRepository userRepository;
+    private final HerbariumRepository herbariumRepository;
+    private final PlantRepository plantRepository;
+    private final PlantPhotoRepository plantPhotoRepository;
+    private final FriendshipRepository friendshipRepository;
     private final EmailService emailService;
     private final NotificationService notificationService;
+    private final PhotoStorageService photoStorageService;
+    private final PasswordEncoder passwordEncoder;
 
     public AdminService(UserRepository userRepository,
+                        HerbariumRepository herbariumRepository,
+                        PlantRepository plantRepository,
+                        PlantPhotoRepository plantPhotoRepository,
+                        FriendshipRepository friendshipRepository,
                         EmailService emailService,
-                        NotificationService notificationService) {
+                        NotificationService notificationService,
+                        PhotoStorageService photoStorageService,
+                        PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.herbariumRepository = herbariumRepository;
+        this.plantRepository = plantRepository;
+        this.plantPhotoRepository = plantPhotoRepository;
+        this.friendshipRepository = friendshipRepository;
         this.emailService = emailService;
         this.notificationService = notificationService;
+        this.photoStorageService = photoStorageService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     private User getActiveAdmin(UUID adminUserId) {
@@ -202,5 +233,214 @@ public class AdminService {
                 unverifiedUsers,
                 admins
         );
+    }
+
+    @Transactional(readOnly = true)
+    public AdminHerbariumStatsResponse getHerbariumStats(UUID adminUserId) {
+        getActiveAdmin(adminUserId);
+
+        long totalHerbaria = herbariumRepository.count();
+        long publicHerbaria = herbariumRepository.countByIsPublicTrue();
+        long privateHerbaria = totalHerbaria - publicHerbaria;
+
+        return new AdminHerbariumStatsResponse(totalHerbaria, publicHerbaria, privateHerbaria);
+    }
+
+    @Transactional(readOnly = true)
+    public AdminPlantStatsResponse getPlantStats(UUID adminUserId) {
+        getActiveAdmin(adminUserId);
+
+        long totalPlants = plantRepository.count();
+        long unrecognizedPlants = plantRepository.countByDetectedSpeciesStartingWith("NotDetected#");
+        long recognizedPlants = totalPlants - unrecognizedPlants;
+        long totalPhotos = plantPhotoRepository.count();
+
+        return new AdminPlantStatsResponse(totalPlants, recognizedPlants, unrecognizedPlants, totalPhotos);
+    }
+
+    @Transactional(readOnly = true)
+    public AdminFriendshipStatsResponse getFriendshipStats(UUID adminUserId) {
+        getActiveAdmin(adminUserId);
+
+        long totalFriendships = friendshipRepository.countByStatus(FriendshipStatus.ACCEPTED);
+        long pendingRequests = friendshipRepository.countByStatus(FriendshipStatus.PENDING);
+
+        return new AdminFriendshipStatsResponse(totalFriendships, pendingRequests);
+    }
+
+    @Transactional(readOnly = true)
+    public AdminOverviewStatsResponse getOverviewStats(UUID adminUserId) {
+        return new AdminOverviewStatsResponse(
+                getStats(adminUserId),
+                getHerbariumStats(adminUserId),
+                getPlantStats(adminUserId),
+                getFriendshipStats(adminUserId)
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public AdminUserDetailResponse getUserDetail(UUID adminUserId, UUID targetUserId) {
+        getActiveAdmin(adminUserId);
+
+        User targetUser = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        long herbariumCount = herbariumRepository.countByUser_Id(targetUserId);
+        long plantCount = plantRepository.countByUserId(targetUserId);
+        long photoCount = plantPhotoRepository.countByUserId(targetUserId);
+        long friendCount = friendshipRepository.countAcceptedByUserId(targetUserId);
+
+        List<HerbariumResponse> herbaria = herbariumRepository.findByUser_IdOrderByCreatedAtDesc(targetUserId)
+                .stream()
+                .map(h -> new HerbariumResponse(h, plantRepository.countByHerbarium_Id(h.getId())))
+                .toList();
+
+        return new AdminUserDetailResponse(targetUser, herbariumCount, plantCount, photoCount, friendCount, herbaria);
+    }
+
+    @Transactional(readOnly = true)
+    public AdminUserFriendsResponse getUserFriends(UUID adminUserId, UUID targetUserId) {
+        getActiveAdmin(adminUserId);
+
+        if (!userRepository.existsById(targetUserId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
+
+        List<FriendResponse> accepted = friendshipRepository.findAcceptedByUserId(targetUserId)
+                .stream()
+                .map(f -> new FriendResponse(f, targetUserId))
+                .toList();
+
+        List<FriendResponse> incoming = friendshipRepository.findByAddressee_IdAndStatus(targetUserId, FriendshipStatus.PENDING)
+                .stream()
+                .map(f -> new FriendResponse(f, targetUserId))
+                .toList();
+
+        List<FriendResponse> sent = friendshipRepository.findByRequester_IdAndStatus(targetUserId, FriendshipStatus.PENDING)
+                .stream()
+                .map(f -> new FriendResponse(f, targetUserId))
+                .toList();
+
+        return new AdminUserFriendsResponse(accepted, incoming, sent);
+    }
+
+    @Transactional(readOnly = true)
+    public List<AdminHerbariumListItemResponse> listHerbariaWithOwners(UUID adminUserId) {
+        getActiveAdmin(adminUserId);
+
+        return herbariumRepository.findAll()
+                .stream()
+                .map(h -> new AdminHerbariumListItemResponse(h, plantRepository.countByHerbarium_Id(h.getId())))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public AdminHerbariumDetailResponse getHerbariumDetail(UUID adminUserId, UUID herbariumId) {
+        getActiveAdmin(adminUserId);
+
+        Herbarium herbarium = herbariumRepository.findById(herbariumId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Herbarium not found"));
+
+        long plantCount = plantRepository.countByHerbarium_Id(herbariumId);
+        long photoCount = plantPhotoRepository.countByHerbariumId(herbariumId);
+
+        return new AdminHerbariumDetailResponse(herbarium, plantCount, photoCount);
+    }
+
+    @Transactional
+    public String adminDeleteUser(UUID adminId, UUID targetUserId) {
+        getActiveAdmin(adminId);
+
+        if (adminId.equals(targetUserId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You cannot delete your own account");
+        }
+
+        User targetUser = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (targetUser.getEmail().endsWith("@deleted.local")
+                || targetUser.getUsername().startsWith("deleted-user-")) {
+            return "User is already deleted";
+        }
+
+        targetUser.setActive(false);
+        targetUser.setVerified(false);
+        targetUser.setEmail("deleted-" + targetUser.getId() + "@deleted.local");
+        targetUser.setUsername("deleted-user-" + targetUser.getId());
+        targetUser.setPasswordHash(passwordEncoder.encode(UUID.randomUUID().toString()));
+        userRepository.save(targetUser);
+
+        return "User deleted successfully";
+    }
+
+    @Transactional
+    public String adminDeleteHerbarium(UUID adminId, UUID targetUserId, UUID herbariumId) {
+        getActiveAdmin(adminId);
+
+        Herbarium herbarium = herbariumRepository.findById(herbariumId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Herbarium not found"));
+
+        if (!herbarium.getUserId().equals(targetUserId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Herbarium not found");
+        }
+
+        List<Plant> plants = plantRepository.findByHerbarium_IdOrderByCreatedAtDesc(herbariumId);
+        if (!plants.isEmpty()) {
+            List<UUID> plantIds = plants.stream().map(Plant::getId).toList();
+            plantPhotoRepository.findByPlant_IdInOrderByCreatedAtAsc(plantIds)
+                    .forEach(photo -> photoStorageService.delete(photo.getUrl()));
+            plantPhotoRepository.deleteByPlant_IdIn(plantIds);
+        }
+        plantRepository.deleteByHerbarium_Id(herbariumId);
+        herbariumRepository.delete(herbarium);
+
+        return "Herbarium deleted successfully";
+    }
+
+    @Transactional
+    public String adminDeletePlant(UUID adminId, UUID herbariumId, UUID plantId) {
+        getActiveAdmin(adminId);
+
+        Plant plant = plantRepository.findById(plantId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plant not found"));
+
+        if (!plant.getHerbariumId().equals(herbariumId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Plant not found");
+        }
+
+        plantPhotoRepository.findByPlant_IdOrderByCreatedAtAsc(plantId)
+                .forEach(p -> photoStorageService.delete(p.getUrl()));
+        plantPhotoRepository.deleteByPlant_Id(plantId);
+        plantRepository.delete(plant);
+
+        return "Plant deleted successfully";
+    }
+
+    @Transactional
+    public String adminDeletePhoto(UUID adminId, UUID herbariumId, UUID plantId, UUID photoId) {
+        getActiveAdmin(adminId);
+
+        Plant plant = plantRepository.findById(plantId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plant not found"));
+
+        if (!plant.getHerbariumId().equals(herbariumId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Plant not found");
+        }
+
+        PlantPhoto photo = plantPhotoRepository.findById(photoId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Photo not found"));
+
+        if (!photo.getPlant().getId().equals(plantId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Photo not found");
+        }
+
+        photoStorageService.delete(photo.getUrl());
+        plantPhotoRepository.delete(photo);
+
+        if (plantPhotoRepository.countByPlant_Id(plantId) == 0) {
+            plantRepository.delete(plant);
+        }
+
+        return "Photo deleted successfully";
     }
 }

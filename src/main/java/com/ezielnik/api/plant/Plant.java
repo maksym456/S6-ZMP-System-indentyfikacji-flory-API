@@ -16,16 +16,12 @@ public class Plant {
     @Id
     @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
-
     @ManyToOne(optional = false)
     @JoinColumn(name = "herbarium_id", nullable = false)
     private Herbarium herbarium;
 
     @Column(name = "name")
     private String name;
-
-    @Column(name = "is_recognized", nullable = false)
-    private boolean isRecognized;
 
     @Column(name = "detected_species")
     private String detectedSpecies;
@@ -54,11 +50,10 @@ public class Plant {
     public Plant() {
     }
 
-    public Plant(Herbarium herbarium, String name, boolean isRecognized,
+    public Plant(Herbarium herbarium, String name,
                  String detectedSpecies, String speciesId, String family, String genus, String commonNames) {
         this.herbarium = herbarium;
         this.name = name;
-        this.isRecognized = isRecognized;
         this.detectedSpecies = detectedSpecies;
         this.speciesId = speciesId;
         this.family = family;
@@ -97,10 +92,6 @@ public class Plant {
 
     public void setName(String name) {
         this.name = name == null ? null : name.trim();
-    }
-
-    public boolean isRecognized() {
-        return isRecognized;
     }
 
     public String getDetectedSpecies() {
