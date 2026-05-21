@@ -10,19 +10,23 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
     private final String appBaseUrl;
+    private final String mailFrom;
 
     public EmailService(JavaMailSender mailSender,
-                        @Value("${app.base-url}") String appBaseUrl) {
+                        @Value("${app.base-url}") String appBaseUrl,
+                        @Value("${app.mail.from}") String mailFrom) {
         this.mailSender = mailSender;
         this.appBaseUrl = appBaseUrl.endsWith("/")
                 ? appBaseUrl.substring(0, appBaseUrl.length() - 1)
                 : appBaseUrl;
+        this.mailFrom = mailFrom;
     }
 
     public void sendVerificationEmail(String toEmail, String verificationToken) {
         String verificationLink = appBaseUrl + "/users/verify?token=" + verificationToken;
 
         SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(mailFrom);
         message.setTo(toEmail);
         message.setSubject("Verify your email");
         message.setText(
@@ -39,6 +43,7 @@ public class EmailService {
         String resetLink = appBaseUrl + "/users/reset-password?token=" + resetToken;
 
         SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(mailFrom);
         message.setTo(toEmail);
         message.setSubject("Reset your password");
         message.setText(
@@ -54,6 +59,7 @@ public class EmailService {
 
     public void sendAdminWarningEmail(String toEmail, String subject, String warningMessage) {
         SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(mailFrom);
         message.setTo(toEmail);
         message.setSubject(subject);
         message.setText(
