@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Configuration;
 @OpenAPIDefinition(
         info = @Info(
                 title = "eZielnik API",
-                version = "1.0.0",
+                version = "1.0",
                 description = "API for eZielnik apps, with Spring Boot JWT authentication API with register, login, and user profile endpoints.",
                 contact = @Contact(name = "Ezielnik API"),
                 license = @License(name = "Apache 2.0")
