@@ -63,13 +63,11 @@ public class SecurityConfig {
         DefaultBearerTokenResolver delegate = new DefaultBearerTokenResolver();
         return (HttpServletRequest request) -> {
             String path = request.getRequestURI();
-            String method = request.getMethod();
             if (path.startsWith("/users/register") || path.startsWith("/users/login")
                     || path.startsWith("/users/verify") || path.startsWith("/users/resend-verification")
                     || path.startsWith("/users/forgot-password") || path.startsWith("/users/reset-password")
                     || path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui")
-                    || path.startsWith("/herbaria/public") || path.startsWith("/photos/")
-                    || ("GET".equals(method) && path.matches("/herbaria/[^/]+/plants(/.*)?$"))) {
+                    || path.startsWith("/herbaria/public") || path.startsWith("/photos/")) {
                 return null;
             }
             return delegate.resolve(request);
