@@ -1,6 +1,7 @@
 package com.ezielnik.api.config;
 
 import jakarta.servlet.DispatcherType;
+import jakarta.servlet.http.HttpServletRequest;
 import com.ezielnik.api.auth.JwtProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,6 +12,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
 
 import javax.crypto.SecretKey;
@@ -49,9 +52,28 @@ public class SecurityConfig {
                 )
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {}));
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {})
+                        .bearerTokenResolver(publicBypassingTokenResolver()));
 
         return http.build();
+    }
+
+    @Bean
+    public BearerTokenResolver publicBypassingTokenResolver() {
+        DefaultBearerTokenResolver delegate = new DefaultBearerTokenResolver();
+        return (HttpServletRequest request) -> {
+            String path = request.getRequestURI();
+            String method = request.getMethod();
+            if (path.startsWith("/users/register") || path.startsWith("/users/login")
+                    || path.startsWith("/users/verify") || path.startsWith("/users/resend-verification")
+                    || path.startsWith("/users/forgot-password") || path.startsWith("/users/reset-password")
+                    || path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui")
+                    || path.startsWith("/herbaria/public") || path.startsWith("/photos/")
+                    || ("GET".equals(method) && path.matches("/herbaria/[^/]+/plants(/.*)?$"))) {
+                return null;
+            }
+            return delegate.resolve(request);
+        };
     }
 
     @Bean
