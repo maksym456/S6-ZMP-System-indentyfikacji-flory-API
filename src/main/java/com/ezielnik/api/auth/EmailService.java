@@ -1,74 +1,65 @@
 package com.ezielnik.api.auth;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
+
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class EmailService {
 
-    private final JavaMailSender mailSender;
+    private final RestClient restClient;
     private final String appBaseUrl;
     private final String mailFrom;
 
-    public EmailService(JavaMailSender mailSender,
-                        @Value("${app.base-url}") String appBaseUrl,
-                        @Value("${app.mail.from}") String mailFrom) {
-        this.mailSender = mailSender;
+    public EmailService(@Value("${app.base-url}") String appBaseUrl,
+                        @Value("${app.mail.from}") String mailFrom,
+                        @Value("${brevo.api-key}") String brevoApiKey) {
         this.appBaseUrl = appBaseUrl.endsWith("/")
                 ? appBaseUrl.substring(0, appBaseUrl.length() - 1)
                 : appBaseUrl;
         this.mailFrom = mailFrom;
+        this.restClient = RestClient.builder()
+                .baseUrl("https://api.brevo.com/v3")
+                .defaultHeader("api-key", brevoApiKey)
+                .build();
     }
 
     public void sendVerificationEmail(String toEmail, String verificationToken) {
         String verificationLink = appBaseUrl + "/users/verify?token=" + verificationToken;
-
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(mailFrom);
-        message.setTo(toEmail);
-        message.setSubject("Verify your email");
-        message.setText(
-                "Welcome!\n\n" +
-                        "Click the link below to verify your email:\n" +
-                        verificationLink + "\n\n" +
-                        "This link expires in 15 minutes."
-        );
-
-        mailSender.send(message);
+        send(toEmail, "Verify your email",
+                "Welcome!\n\nClick the link below to verify your email:\n" +
+                verificationLink + "\n\nThis link expires in 15 minutes.");
     }
 
     public void sendPasswordResetEmail(String toEmail, String resetToken) {
         String resetLink = appBaseUrl + "/users/reset-password?token=" + resetToken;
-
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(mailFrom);
-        message.setTo(toEmail);
-        message.setSubject("Reset your password");
-        message.setText(
-                "Hello,\n\n" +
-                        "Click the link below to reset your password:\n" +
-                        resetLink + "\n\n" +
-                        "This link expires in 15 minutes.\n\n" +
-                        "If you did not request a password reset, you can ignore this email."
-        );
-
-        mailSender.send(message);
+        send(toEmail, "Reset your password",
+                "Hello,\n\nClick the link below to reset your password:\n" +
+                resetLink + "\n\nThis link expires in 15 minutes.\n\n" +
+                "If you did not request a password reset, you can ignore this email.");
     }
 
     public void sendAdminWarningEmail(String toEmail, String subject, String warningMessage) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(mailFrom);
-        message.setTo(toEmail);
-        message.setSubject(subject);
-        message.setText(
-                "Hello,\n\n" +
-                        warningMessage + "\n\n" +
-                        "This is an administrative warning regarding your account.\n\n" +
-                        "eZielnik Team"
-        );
+        send(toEmail, subject,
+                "Hello,\n\n" + warningMessage +
+                "\n\nThis is an administrative warning regarding your account.\n\neZielnik Team");
+    }
 
-        mailSender.send(message);
+    private void send(String toEmail, String subject, String text) {
+        restClient.post()
+                .uri("/smtp/email")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of(
+                        "sender", Map.of("email", mailFrom),
+                        "to", List.of(Map.of("email", toEmail)),
+                        "subject", subject,
+                        "textContent", text
+                ))
+                .retrieve()
+                .toBodilessEntity();
     }
 }
