@@ -1,4 +1,4 @@
-FROM eclipse-temurin:25-jdk
+FROM eclipse-temurin:21-jdk AS builder
 
 WORKDIR /app
 
@@ -10,6 +10,12 @@ RUN ./mvnw dependency:go-offline
 COPY src src
 RUN ./mvnw clean package -DskipTests
 
+FROM eclipse-temurin:21-jre
+
+WORKDIR /app
+
+COPY --from=builder /app/target/S6-ZMP-System-indentyfikacji-flory-API-1.0.jar app.jar
+
 EXPOSE 8080
 
-CMD ["java", "-jar", "target/S6-ZMP-System-indentyfikacji-flory-API-0.0.1-SNAPSHOT.jar"]
+CMD ["java", "-jar", "app.jar"]
