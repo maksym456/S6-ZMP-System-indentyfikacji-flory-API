@@ -35,3 +35,6 @@ build/
 ### ENV files ###
 .env.*
 .env
+
+### Local photo storage ###
+photos/
