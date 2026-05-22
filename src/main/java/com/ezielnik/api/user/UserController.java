@@ -85,7 +85,7 @@ public class UserController {
     @PostMapping("/2fa/disable")
     public ResponseEntity<String> disableEmailTwoFactor(@AuthenticationPrincipal Jwt jwt) {
         userService.disableEmailTwoFactor(UUID.fromString(jwt.getSubject()));
-        return ResponseEntity.ok("Two-factor authentication disabled");
+        return ResponseEntity.ok("Email two-factor authentication disabled");
     }
 
     @Operation(summary = "Resend 2FA email code", security = @SecurityRequirement(name = "bearerAuth"))

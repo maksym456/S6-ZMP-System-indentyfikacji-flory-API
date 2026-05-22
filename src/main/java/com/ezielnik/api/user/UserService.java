@@ -254,10 +254,6 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        if (!user.isActive()) {
-            return "Account is already deleted";
-        }
-
         user.setActive(false);
         user.setVerified(false);
         user.setEmail("deleted-" + user.getId() + "@deleted.local");
