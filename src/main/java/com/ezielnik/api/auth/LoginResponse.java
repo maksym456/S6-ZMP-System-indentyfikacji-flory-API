@@ -13,8 +13,8 @@ public class LoginResponse {
     private UUID id;
     private String username;
     private String email;
-    private boolean verified;
-    private boolean admin;
+    private Boolean verified;
+    private Boolean admin;
     private String token;
     private Boolean requiresTwoFactor;
     private String preAuthToken;
@@ -64,11 +64,11 @@ public class LoginResponse {
         return email;
     }
 
-    public boolean isVerified() {
+    public Boolean isVerified() {
         return verified;
     }
 
-    public boolean isAdmin() {
+    public Boolean isAdmin() {
         return admin;
     }
 
