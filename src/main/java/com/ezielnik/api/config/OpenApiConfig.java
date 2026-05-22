@@ -32,7 +32,7 @@ public class OpenApiConfig {
                 .info(new Info()
                         .title("eZielnik API")
                         .version("1.0")
-                        .description("API for eZielnik apps, with Spring Boot JWT authentication API with register, login, and user profile endpoints.")
+                        .description("REST API for the eZielnik flora identification app. Provides user authentication (JWT, email 2FA), herbarium and plant management, photo upload with identification via PlantNet, social features (friends, notifications), and admin panel.")
                         .contact(new Contact().name("Ezielnik API"))
                         .license(new License().name("Apache 2.0")))
                 .servers(List.of(new Server().url(baseUrl)))

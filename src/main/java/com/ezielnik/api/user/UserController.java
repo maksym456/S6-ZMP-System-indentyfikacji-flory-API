@@ -47,9 +47,10 @@ public class UserController {
 
     @Operation(summary = "Login and get JWT")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Login successful"),
+            @ApiResponse(responseCode = "200", description = "Login successful, or 2FA required (requiresTwoFactor=true, preAuthToken returned instead of token)"),
             @ApiResponse(responseCode = "400", description = "Invalid request"),
-            @ApiResponse(responseCode = "401", description = "Invalid login or password")
+            @ApiResponse(responseCode = "401", description = "Invalid login or password"),
+            @ApiResponse(responseCode = "403", description = "User account is inactive")
     })
     @PostMapping("/login")
     public LoginResponse login(@RequestBody LoginRequest request) {
@@ -62,7 +63,13 @@ public class UserController {
         return new LoginResponse("Logged in successfully", user, jwtService.generateToken(user));
     }
 
-    @Operation(summary = "Complete login with 2FA email code", security = @SecurityRequirement(name = "bearerAuth"))
+    @Operation(summary = "Complete login with 2FA email code — requires pre-auth token from /login, not a regular JWT", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Login successful, full JWT returned"),
+            @ApiResponse(responseCode = "400", description = "Code is required or invalid/expired"),
+            @ApiResponse(responseCode = "401", description = "Missing or invalid pre-auth token"),
+            @ApiResponse(responseCode = "403", description = "Token is not a pre-auth token")
+    })
     @PostMapping("/verify-2fa")
     public LoginResponse verifyTwoFactor(@AuthenticationPrincipal Jwt jwt,
                                          @RequestBody TwoFactorVerifyRequest request) {
@@ -75,6 +82,12 @@ public class UserController {
     }
 
     @Operation(summary = "Enable email 2FA", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Email 2FA enabled"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Account inactive or email not verified"),
+            @ApiResponse(responseCode = "404", description = "User not found")
+    })
     @PostMapping("/2fa/email/enable")
     public ResponseEntity<String> enableEmailTwoFactor(@AuthenticationPrincipal Jwt jwt) {
         userService.enableEmailTwoFactor(UUID.fromString(jwt.getSubject()));
@@ -82,13 +95,24 @@ public class UserController {
     }
 
     @Operation(summary = "Disable email 2FA", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Email 2FA disabled"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Account inactive or email not verified"),
+            @ApiResponse(responseCode = "404", description = "User not found")
+    })
     @PostMapping("/2fa/disable")
     public ResponseEntity<String> disableEmailTwoFactor(@AuthenticationPrincipal Jwt jwt) {
         userService.disableEmailTwoFactor(UUID.fromString(jwt.getSubject()));
         return ResponseEntity.ok("Email two-factor authentication disabled");
     }
 
-    @Operation(summary = "Resend 2FA email code", security = @SecurityRequirement(name = "bearerAuth"))
+    @Operation(summary = "Resend 2FA email code — requires pre-auth token from /login", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Verification code sent"),
+            @ApiResponse(responseCode = "401", description = "Missing or invalid pre-auth token"),
+            @ApiResponse(responseCode = "403", description = "Token is not a pre-auth token")
+    })
     @PostMapping("/2fa/send-email-code")
     public ResponseEntity<String> resendEmailCode(@AuthenticationPrincipal Jwt jwt) {
         if (!"pre_auth".equals(jwt.getClaimAsString("purpose"))) {
