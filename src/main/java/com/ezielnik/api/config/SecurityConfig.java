@@ -67,7 +67,7 @@ public class SecurityConfig {
                     || path.startsWith("/users/verify") || path.startsWith("/users/resend-verification")
                     || path.startsWith("/users/forgot-password") || path.startsWith("/users/reset-password")
                     || path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui")
-                    || path.startsWith("/herbaria/public") || path.startsWith("/photos/")) {
+                    || path.startsWith("/herbaria/public")) {
                 return null;
             }
             return delegate.resolve(request);
