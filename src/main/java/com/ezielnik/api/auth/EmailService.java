@@ -43,6 +43,12 @@ public class EmailService {
                 "If you did not request a password reset, you can ignore this email.");
     }
 
+    public void sendTwoFactorCode(String toEmail, String code) {
+        send(toEmail, "Your login verification code",
+                "Your verification code is: " + code + "\n\nThis code expires in 10 minutes.\n\n" +
+                "If you did not attempt to log in, please secure your account immediately.");
+    }
+
     public void sendAdminWarningEmail(String toEmail, String subject, String warningMessage) {
         send(toEmail, subject,
                 "Hello,\n\n" + warningMessage +

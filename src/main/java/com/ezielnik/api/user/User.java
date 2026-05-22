@@ -37,6 +37,9 @@ public class User {
     @Column(name = "is_admin", nullable = false)
     private boolean is_admin = false;
 
+    @Column(name = "email_two_factor_enabled", nullable = false, columnDefinition = "boolean not null default false")
+    private boolean emailTwoFactorEnabled = false;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
@@ -110,6 +113,14 @@ public class User {
 
     public void setAdmin(boolean admin) {
         this.is_admin = admin;
+    }
+
+    public boolean isEmailTwoFactorEnabled() {
+        return emailTwoFactorEnabled;
+    }
+
+    public void setEmailTwoFactorEnabled(boolean emailTwoFactorEnabled) {
+        this.emailTwoFactorEnabled = emailTwoFactorEnabled;
     }
 
     public OffsetDateTime getCreatedAt() {

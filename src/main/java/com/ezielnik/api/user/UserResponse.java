@@ -13,6 +13,7 @@ public class UserResponse {
     private boolean verified;
     private boolean active;
     private boolean admin;
+    private boolean emailTwoFactorEnabled;
     private String warning;
 
     public UserResponse(User user) {
@@ -22,6 +23,7 @@ public class UserResponse {
         this.verified = user.isVerified();
         this.active = user.isActive();
         this.admin = user.isAdmin();
+        this.emailTwoFactorEnabled = user.isEmailTwoFactorEnabled();
 
         if (!user.isVerified()) {
             this.warning = "Your email is not verified. Please verify your email to unlock all features.";
@@ -53,6 +55,10 @@ public class UserResponse {
 
     public boolean isAdmin() {
         return admin;
+    }
+
+    public boolean isEmailTwoFactorEnabled() {
+        return emailTwoFactorEnabled;
     }
 
     public String getWarning() {

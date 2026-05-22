@@ -16,6 +16,8 @@ public class LoginResponse {
     private boolean verified;
     private boolean admin;
     private String token;
+    private Boolean requiresTwoFactor;
+    private String preAuthToken;
 
     public LoginResponse(String message, User user, String token) {
         this.message = message;
@@ -29,6 +31,14 @@ public class LoginResponse {
         if (!user.isVerified()) {
             this.warning = "Email not verified";
         }
+    }
+
+    public static LoginResponse twoFactorRequired(String preAuthToken) {
+        LoginResponse r = new LoginResponse();
+        r.message = "Two-factor authentication required";
+        r.requiresTwoFactor = true;
+        r.preAuthToken = preAuthToken;
+        return r;
     }
 
     public LoginResponse() {
@@ -64,5 +74,13 @@ public class LoginResponse {
 
     public String getToken() {
         return token;
+    }
+
+    public Boolean getRequiresTwoFactor() {
+        return requiresTwoFactor;
+    }
+
+    public String getPreAuthToken() {
+        return preAuthToken;
     }
 }

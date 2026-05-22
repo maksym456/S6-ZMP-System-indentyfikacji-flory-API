@@ -142,6 +142,22 @@ public class UserService {
     }
 
     @Transactional
+    public void enableEmailTwoFactor(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        user.setEmailTwoFactorEnabled(true);
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void disableEmailTwoFactor(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        user.setEmailTwoFactorEnabled(false);
+        userRepository.save(user);
+    }
+
+    @Transactional
     public String verifyEmail(String token) {
         UUID userId = jwtService.extractEmailVerificationUserId(token);
 

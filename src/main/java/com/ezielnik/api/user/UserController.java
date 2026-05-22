@@ -14,9 +14,9 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.HttpStatus;
-
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.HtmlUtils;
 
 @RestController
@@ -25,10 +25,12 @@ public class UserController {
 
     private final JwtService jwtService;
     private final UserService userService;
+    private final TwoFactorService twoFactorService;
 
-    public UserController(JwtService jwtService, UserService userService) {
+    public UserController(JwtService jwtService, UserService userService, TwoFactorService twoFactorService) {
         this.jwtService = jwtService;
         this.userService = userService;
+        this.twoFactorService = twoFactorService;
     }
 
     @Operation(summary = "Register a new user")
@@ -52,8 +54,48 @@ public class UserController {
     @PostMapping("/login")
     public LoginResponse login(@RequestBody LoginRequest request) {
         User user = userService.login(request);
-        String token = jwtService.generateToken(user);
-        return new LoginResponse("Logged in successfully", user, token);
+        if (user.isEmailTwoFactorEnabled()) {
+            String preAuthToken = jwtService.generatePreAuthToken(user);
+            twoFactorService.sendEmailCode(user.getId());
+            return LoginResponse.twoFactorRequired(preAuthToken);
+        }
+        return new LoginResponse("Logged in successfully", user, jwtService.generateToken(user));
+    }
+
+    @Operation(summary = "Complete login with 2FA email code", security = @SecurityRequirement(name = "bearerAuth"))
+    @PostMapping("/verify-2fa")
+    public LoginResponse verifyTwoFactor(@AuthenticationPrincipal Jwt jwt,
+                                         @RequestBody TwoFactorVerifyRequest request) {
+        if (!"pre_auth".equals(jwt.getClaimAsString("purpose"))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid token for 2FA verification");
+        }
+        UUID userId = UUID.fromString(jwt.getSubject());
+        User user = twoFactorService.verifyEmailCode(userId, request.getCode());
+        return new LoginResponse("Logged in successfully", user, jwtService.generateToken(user));
+    }
+
+    @Operation(summary = "Enable email 2FA", security = @SecurityRequirement(name = "bearerAuth"))
+    @PostMapping("/2fa/email/enable")
+    public ResponseEntity<String> enableEmailTwoFactor(@AuthenticationPrincipal Jwt jwt) {
+        userService.enableEmailTwoFactor(UUID.fromString(jwt.getSubject()));
+        return ResponseEntity.ok("Email two-factor authentication enabled");
+    }
+
+    @Operation(summary = "Disable email 2FA", security = @SecurityRequirement(name = "bearerAuth"))
+    @PostMapping("/2fa/disable")
+    public ResponseEntity<String> disableEmailTwoFactor(@AuthenticationPrincipal Jwt jwt) {
+        userService.disableEmailTwoFactor(UUID.fromString(jwt.getSubject()));
+        return ResponseEntity.ok("Two-factor authentication disabled");
+    }
+
+    @Operation(summary = "Resend 2FA email code", security = @SecurityRequirement(name = "bearerAuth"))
+    @PostMapping("/2fa/send-email-code")
+    public ResponseEntity<String> resendEmailCode(@AuthenticationPrincipal Jwt jwt) {
+        if (!"pre_auth".equals(jwt.getClaimAsString("purpose"))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid token for 2FA operation");
+        }
+        twoFactorService.sendEmailCode(UUID.fromString(jwt.getSubject()));
+        return ResponseEntity.ok("Verification code sent");
     }
 
     @Operation(summary = "Get current user", security = @SecurityRequirement(name = "bearerAuth"))

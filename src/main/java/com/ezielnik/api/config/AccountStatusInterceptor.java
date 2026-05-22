@@ -42,6 +42,15 @@ public class AccountStatusInterceptor implements HandlerInterceptor {
             return true;
         }
 
+        String purpose = jwtAuthentication.getToken().getClaimAsString("purpose");
+        if ("pre_auth".equals(purpose)) {
+            if (path.equals("/users/verify-2fa") || path.equals("/users/2fa/send-email-code")) {
+                return true;
+            }
+            writeError(response, HttpStatus.FORBIDDEN, "Full authentication required");
+            return false;
+        }
+
         UUID userId = UUID.fromString(jwtAuthentication.getToken().getSubject());
 
         User user = userRepository.findById(userId).orElse(null);

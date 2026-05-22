@@ -53,6 +53,17 @@ public class JwtService {
                 .signWith(key)
                 .compact();
     }
+    public String generatePreAuthToken(User user) {
+        long now = System.currentTimeMillis();
+        return Jwts.builder()
+                .subject(user.getId().toString())
+                .claim("purpose", "pre_auth")
+                .issuedAt(new Date(now))
+                .expiration(new Date(now + 5 * 60 * 1000))
+                .signWith(key)
+                .compact();
+    }
+
     public String generateEmailVerificationToken(User user) {
         long now = System.currentTimeMillis();
         long verificationExpirationMs = 15 * 60 * 1000; // 15 minutes
