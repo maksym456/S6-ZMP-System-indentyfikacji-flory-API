@@ -1,5 +1,10 @@
 package com.ezielnik.api.admin;
 
+import com.ezielnik.api.admin.content_management.AdminHerbariumDetailResponse;
+import com.ezielnik.api.admin.content_management.AdminHerbariumListItemResponse;
+import com.ezielnik.api.admin.content_management.AdminHerbariumStatsResponse;
+import com.ezielnik.api.admin.content_management.AdminPlantStatsResponse;
+import com.ezielnik.api.admin.user_management.*;
 import com.ezielnik.api.auth.EmailService;
 import com.ezielnik.api.friend.FriendResponse;
 import com.ezielnik.api.friend.FriendshipRepository;

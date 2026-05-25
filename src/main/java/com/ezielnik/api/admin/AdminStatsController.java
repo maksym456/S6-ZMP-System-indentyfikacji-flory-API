@@ -1,5 +1,10 @@
 package com.ezielnik.api.admin;
 
+import com.ezielnik.api.admin.content_management.AdminHerbariumDetailResponse;
+import com.ezielnik.api.admin.content_management.AdminHerbariumListItemResponse;
+import com.ezielnik.api.admin.user_management.AdminUserDetailResponse;
+import com.ezielnik.api.admin.user_management.AdminUserFriendsResponse;
+import com.ezielnik.api.admin.user_management.AdminUserResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

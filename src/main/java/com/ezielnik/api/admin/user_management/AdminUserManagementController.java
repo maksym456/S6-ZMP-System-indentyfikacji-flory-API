@@ -1,5 +1,6 @@
-package com.ezielnik.api.admin;
+package com.ezielnik.api.admin.user_management;
 
+import com.ezielnik.api.admin.AdminService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

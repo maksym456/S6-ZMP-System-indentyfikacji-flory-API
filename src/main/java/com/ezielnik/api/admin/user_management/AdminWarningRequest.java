@@ -1,4 +1,4 @@
-package com.ezielnik.api.admin;
+package com.ezielnik.api.admin.user_management;
 
 public class AdminWarningRequest {
 

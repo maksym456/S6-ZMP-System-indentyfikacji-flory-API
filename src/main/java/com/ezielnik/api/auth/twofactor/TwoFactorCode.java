@@ -1,4 +1,4 @@
-package com.ezielnik.api.auth;
+package com.ezielnik.api.auth.twofactor;
 
 import com.ezielnik.api.user.User;
 import jakarta.persistence.*;

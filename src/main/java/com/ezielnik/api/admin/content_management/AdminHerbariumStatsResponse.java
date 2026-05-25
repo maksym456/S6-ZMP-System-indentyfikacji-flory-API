@@ -1,4 +1,4 @@
-package com.ezielnik.api.admin;
+package com.ezielnik.api.admin.content_management;
 
 public record AdminHerbariumStatsResponse(
         long totalHerbaria,

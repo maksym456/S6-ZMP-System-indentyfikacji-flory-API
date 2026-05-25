@@ -1,5 +1,6 @@
-package com.ezielnik.api.auth;
+package com.ezielnik.api.auth.twofactor;
 
+import com.ezielnik.api.auth.EmailService;
 import com.ezielnik.api.user.User;
 import com.ezielnik.api.user.UserRepository;
 import org.springframework.http.HttpStatus;

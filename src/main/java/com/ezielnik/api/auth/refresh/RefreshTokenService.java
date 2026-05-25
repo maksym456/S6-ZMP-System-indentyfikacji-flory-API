@@ -1,5 +1,6 @@
-package com.ezielnik.api.auth;
+package com.ezielnik.api.auth.refresh;
 
+import com.ezielnik.api.auth.JwtProperties;
 import com.ezielnik.api.user.User;
 import com.ezielnik.api.user.UserRepository;
 import org.slf4j.Logger;
