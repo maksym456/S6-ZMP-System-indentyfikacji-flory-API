@@ -198,6 +198,7 @@ public class UserService {
         return "Verification email sent.";
     }
 
+    @SuppressWarnings("SameReturnValue")
     @Transactional(readOnly = true)
     public String forgotPassword(ForgotPasswordRequest request) {
         if (request.getEmail() == null || request.getEmail().isBlank()) {
@@ -220,6 +221,7 @@ public class UserService {
         return "If an account with this email exists, a password reset email has been sent.";
     }
 
+    @SuppressWarnings("SameReturnValue")
     @Transactional
     public String resetPassword(ResetPasswordRequest request) {
         if (request.getToken() == null || request.getToken().isBlank()) {
@@ -249,11 +251,18 @@ public class UserService {
         return "Password reset successfully";
     }
 
+    @SuppressWarnings("SameReturnValue")
     @Transactional
     public String deleteMyAccount(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
+        deleteUser(user, passwordEncoder, userRepository);
+
+        return "Account deleted successfully";
+    }
+
+    public static void deleteUser(User user, PasswordEncoder passwordEncoder, UserRepository userRepository) {
         user.setActive(false);
         user.setVerified(false);
         user.setEmail("deleted-" + user.getId() + "@deleted.local");
@@ -261,7 +270,5 @@ public class UserService {
         user.setPasswordHash(passwordEncoder.encode(UUID.randomUUID().toString()));
 
         userRepository.save(user);
-
-        return "Account deleted successfully";
     }
 }

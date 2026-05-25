@@ -85,6 +85,7 @@ public class FriendshipService {
         return new FriendResponse(friendship, userId);
     }
 
+    @SuppressWarnings("SameReturnValue")
     @Transactional
     public String removeFriendship(UUID userId, UUID friendshipId) {
         Friendship friendship = friendshipRepository.findById(friendshipId)

@@ -2,7 +2,6 @@ package com.ezielnik.api.admin;
 
 import com.ezielnik.api.auth.EmailService;
 import com.ezielnik.api.friend.FriendResponse;
-import com.ezielnik.api.friend.Friendship;
 import com.ezielnik.api.friend.FriendshipRepository;
 import com.ezielnik.api.friend.FriendshipStatus;
 import com.ezielnik.api.herbarium.Herbarium;
@@ -16,6 +15,8 @@ import com.ezielnik.api.plant.Plant;
 import com.ezielnik.api.plant.PlantRepository;
 import com.ezielnik.api.user.User;
 import com.ezielnik.api.user.UserRepository;
+import com.ezielnik.api.user.UserService;
+import org.jspecify.annotations.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -58,7 +59,7 @@ public class AdminService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    private User getActiveAdmin(UUID adminUserId) {
+    private void validateAdmin(UUID adminUserId) {
         User admin = userRepository.findById(adminUserId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.UNAUTHORIZED,
@@ -72,13 +73,11 @@ public class AdminService {
         if (!admin.isAdmin()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin access required");
         }
-
-        return admin;
     }
 
     @Transactional(readOnly = true)
     public List<AdminUserResponse> listUsers(UUID adminUserId) {
-        getActiveAdmin(adminUserId);
+        validateAdmin(adminUserId);
 
         return userRepository.findAll()
                 .stream()
@@ -88,7 +87,7 @@ public class AdminService {
 
     @Transactional
     public String banUser(UUID adminUserId, UUID targetUserId) {
-        getActiveAdmin(adminUserId);
+        validateAdmin(adminUserId);
 
         if (adminUserId.equals(targetUserId)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You cannot ban your own account");
@@ -109,7 +108,7 @@ public class AdminService {
 
     @Transactional
     public String makeAdmin(UUID adminUserId, UUID targetUserId) {
-        getActiveAdmin(adminUserId);
+        validateAdmin(adminUserId);
 
         User targetUser = userRepository.findById(targetUserId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
@@ -132,9 +131,10 @@ public class AdminService {
         return "User promoted to admin successfully";
     }
 
+    @SuppressWarnings("SameReturnValue")
     @Transactional
     public String sendAdminWarning(UUID adminUserId, UUID targetUserId, AdminWarningRequest request) {
-        getActiveAdmin(adminUserId);
+        validateAdmin(adminUserId);
 
         if (request.getSubject() == null || request.getSubject().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Warning subject is required");
@@ -171,7 +171,7 @@ public class AdminService {
 
     @Transactional
     public String unbanUser(UUID adminUserId, UUID targetUserId) {
-        getActiveAdmin(adminUserId);
+        validateAdmin(adminUserId);
 
         User targetUser = userRepository.findById(targetUserId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
@@ -193,7 +193,7 @@ public class AdminService {
 
     @Transactional
     public String removeAdmin(UUID adminUserId, UUID targetUserId) {
-        getActiveAdmin(adminUserId);
+        validateAdmin(adminUserId);
 
         if (adminUserId.equals(targetUserId)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You cannot remove your own admin role");
@@ -214,7 +214,7 @@ public class AdminService {
 
     @Transactional(readOnly = true)
     public AdminUserStatsResponse getStats(UUID adminUserId) {
-        getActiveAdmin(adminUserId);
+        validateAdmin(adminUserId);
 
         List<User> users = userRepository.findAll();
 
@@ -237,7 +237,7 @@ public class AdminService {
 
     @Transactional(readOnly = true)
     public AdminHerbariumStatsResponse getHerbariumStats(UUID adminUserId) {
-        getActiveAdmin(adminUserId);
+        validateAdmin(adminUserId);
 
         long totalHerbaria = herbariumRepository.count();
         long publicHerbaria = herbariumRepository.countByIsPublicTrue();
@@ -248,7 +248,7 @@ public class AdminService {
 
     @Transactional(readOnly = true)
     public AdminPlantStatsResponse getPlantStats(UUID adminUserId) {
-        getActiveAdmin(adminUserId);
+        validateAdmin(adminUserId);
 
         long totalPlants = plantRepository.count();
         long unrecognizedPlants = plantRepository.countByDetectedSpeciesStartingWith("NotDetected#");
@@ -260,7 +260,7 @@ public class AdminService {
 
     @Transactional(readOnly = true)
     public AdminFriendshipStatsResponse getFriendshipStats(UUID adminUserId) {
-        getActiveAdmin(adminUserId);
+        validateAdmin(adminUserId);
 
         long totalFriendships = friendshipRepository.countByStatus(FriendshipStatus.ACCEPTED);
         long pendingRequests = friendshipRepository.countByStatus(FriendshipStatus.PENDING);
@@ -280,7 +280,7 @@ public class AdminService {
 
     @Transactional(readOnly = true)
     public AdminUserDetailResponse getUserDetail(UUID adminUserId, UUID targetUserId) {
-        getActiveAdmin(adminUserId);
+        validateAdmin(adminUserId);
 
         User targetUser = userRepository.findById(targetUserId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
@@ -300,7 +300,7 @@ public class AdminService {
 
     @Transactional(readOnly = true)
     public AdminUserFriendsResponse getUserFriends(UUID adminUserId, UUID targetUserId) {
-        getActiveAdmin(adminUserId);
+        validateAdmin(adminUserId);
 
         if (!userRepository.existsById(targetUserId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
@@ -326,7 +326,7 @@ public class AdminService {
 
     @Transactional(readOnly = true)
     public List<AdminHerbariumListItemResponse> listHerbariaWithOwners(UUID adminUserId) {
-        getActiveAdmin(adminUserId);
+        validateAdmin(adminUserId);
 
         return herbariumRepository.findAll()
                 .stream()
@@ -336,7 +336,7 @@ public class AdminService {
 
     @Transactional(readOnly = true)
     public AdminHerbariumDetailResponse getHerbariumDetail(UUID adminUserId, UUID herbariumId) {
-        getActiveAdmin(adminUserId);
+        validateAdmin(adminUserId);
 
         Herbarium herbarium = herbariumRepository.findById(herbariumId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Herbarium not found"));
@@ -349,7 +349,7 @@ public class AdminService {
 
     @Transactional
     public String adminDeleteUser(UUID adminId, UUID targetUserId) {
-        getActiveAdmin(adminId);
+        validateAdmin(adminId);
 
         if (adminId.equals(targetUserId)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You cannot delete your own account");
@@ -363,19 +363,15 @@ public class AdminService {
             return "User is already deleted";
         }
 
-        targetUser.setActive(false);
-        targetUser.setVerified(false);
-        targetUser.setEmail("deleted-" + targetUser.getId() + "@deleted.local");
-        targetUser.setUsername("deleted-user-" + targetUser.getId());
-        targetUser.setPasswordHash(passwordEncoder.encode(UUID.randomUUID().toString()));
-        userRepository.save(targetUser);
+        UserService.deleteUser(targetUser, passwordEncoder, userRepository);
 
         return "User deleted successfully";
     }
 
+    @SuppressWarnings("SameReturnValue")
     @Transactional
     public String adminDeleteHerbarium(UUID adminId, UUID targetUserId, UUID herbariumId) {
-        getActiveAdmin(adminId);
+        validateAdmin(adminId);
 
         Herbarium herbarium = herbariumRepository.findById(herbariumId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Herbarium not found"));
@@ -384,6 +380,12 @@ public class AdminService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Herbarium not found");
         }
 
+        return getString(herbariumId, herbarium, plantRepository, plantPhotoRepository, photoStorageService, herbariumRepository);
+    }
+
+    @SuppressWarnings("SameReturnValue")
+    @NonNull
+    public static String getString(UUID herbariumId, Herbarium herbarium, PlantRepository plantRepository, PlantPhotoRepository plantPhotoRepository, PhotoStorageService photoStorageService, HerbariumRepository herbariumRepository) {
         List<Plant> plants = plantRepository.findByHerbarium_IdOrderByCreatedAtDesc(herbariumId);
         if (!plants.isEmpty()) {
             List<UUID> plantIds = plants.stream().map(Plant::getId).toList();
@@ -397,9 +399,10 @@ public class AdminService {
         return "Herbarium deleted successfully";
     }
 
+    @SuppressWarnings("SameReturnValue")
     @Transactional
     public String adminDeletePlant(UUID adminId, UUID herbariumId, UUID plantId) {
-        getActiveAdmin(adminId);
+        validateAdmin(adminId);
 
         Plant plant = plantRepository.findById(plantId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plant not found"));
@@ -416,9 +419,10 @@ public class AdminService {
         return "Plant deleted successfully";
     }
 
+    @SuppressWarnings("SameReturnValue")
     @Transactional
     public String adminDeletePhoto(UUID adminId, UUID herbariumId, UUID plantId, UUID photoId) {
-        getActiveAdmin(adminId);
+        validateAdmin(adminId);
 
         Plant plant = plantRepository.findById(plantId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plant not found"));

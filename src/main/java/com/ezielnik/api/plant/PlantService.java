@@ -3,6 +3,7 @@ package com.ezielnik.api.plant;
 import com.ezielnik.api.friend.FriendshipRepository;
 import com.ezielnik.api.herbarium.Herbarium;
 import com.ezielnik.api.herbarium.HerbariumRepository;
+import com.ezielnik.api.user.User;
 import com.ezielnik.api.user.UserRepository;
 import com.ezielnik.api.photo.PhotoStorageService;
 import com.ezielnik.api.photo.PlantPhoto;
@@ -53,6 +54,24 @@ public class PlantService {
         this.userRepository = userRepository;
     }
 
+    private Plant requirePlant(UUID plantId, UUID herbariumId) {
+        Plant plant = plantRepository.findById(plantId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plant not found"));
+        if (!plant.getHerbariumId().equals(herbariumId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Plant not found");
+        }
+        return plant;
+    }
+
+    private PlantPhoto requirePhoto(UUID photoId, UUID plantId) {
+        PlantPhoto photo = plantPhotoRepository.findById(photoId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Photo not found"));
+        if (!photo.getPlant().getId().equals(plantId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Photo not found");
+        }
+        return photo;
+    }
+
     private Herbarium verifyOwner(UUID herbariumId, UUID userId) {
         Herbarium herbarium = herbariumRepository.findById(herbariumId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Herbarium not found"));
@@ -73,7 +92,7 @@ public class PlantService {
             return;
         }
 
-        boolean isAdmin = userRepository.findById(userId).map(u -> u.isAdmin()).orElse(false);
+        boolean isAdmin = userRepository.findById(userId).map(User::isAdmin).orElse(false);
         if (!herbarium.getUserId().equals(userId) && !herbarium.isPublic()
                 && !isAdmin
                 && !friendshipRepository.areFriends(userId, herbarium.getUserId())) {
@@ -276,14 +295,7 @@ public class PlantService {
     @Transactional(readOnly = true)
     public PlantResponse getPlant(UUID userId, UUID herbariumId, UUID plantId) {
         verifyAccess(herbariumId, userId);
-
-        Plant plant = plantRepository.findById(plantId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plant not found"));
-
-        if (!plant.getHerbariumId().equals(herbariumId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Plant not found");
-        }
-
+        Plant plant = requirePlant(plantId, herbariumId);
         List<PlantPhoto> photos = plantPhotoRepository.findByPlant_IdOrderByCreatedAtAsc(plantId);
         return new PlantResponse(plant, photos);
     }
@@ -291,13 +303,7 @@ public class PlantService {
     @Transactional
     public PlantResponse updatePlantName(UUID userId, UUID herbariumId, UUID plantId, String name) {
         verifyOwner(herbariumId, userId);
-
-        Plant plant = plantRepository.findById(plantId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plant not found"));
-
-        if (!plant.getHerbariumId().equals(herbariumId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Plant not found");
-        }
+        Plant plant = requirePlant(plantId, herbariumId);
 
         if (name == null || name.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Plant name is required");
@@ -313,21 +319,8 @@ public class PlantService {
     @Transactional(readOnly = true)
     public PlantPhotoResponse getPhoto(UUID userId, UUID herbariumId, UUID plantId, UUID photoId) {
         verifyAccess(herbariumId, userId);
-
-        Plant plant = plantRepository.findById(plantId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plant not found"));
-
-        if (!plant.getHerbariumId().equals(herbariumId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Plant not found");
-        }
-
-        PlantPhoto photo = plantPhotoRepository.findById(photoId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Photo not found"));
-
-        if (!photo.getPlant().getId().equals(plantId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Photo not found");
-        }
-
+        requirePlant(plantId, herbariumId);
+        PlantPhoto photo = requirePhoto(photoId, plantId);
         return new PlantPhotoResponse(photo);
     }
 
@@ -335,42 +328,18 @@ public class PlantService {
     public PlantPhotoResponse updatePhotoDescription(UUID userId, UUID herbariumId, UUID plantId,
                                                      UUID photoId, String description) {
         verifyOwner(herbariumId, userId);
-
-        Plant plant = plantRepository.findById(plantId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plant not found"));
-
-        if (!plant.getHerbariumId().equals(herbariumId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Plant not found");
-        }
-
-        PlantPhoto photo = plantPhotoRepository.findById(photoId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Photo not found"));
-
-        if (!photo.getPlant().getId().equals(plantId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Photo not found");
-        }
-
+        requirePlant(plantId, herbariumId);
+        PlantPhoto photo = requirePhoto(photoId, plantId);
         photo.setDescription(description == null || description.isBlank() ? null : description.trim());
         return new PlantPhotoResponse(plantPhotoRepository.save(photo));
     }
 
+    @SuppressWarnings("SameReturnValue")
     @Transactional
     public String deletePhoto(UUID userId, UUID herbariumId, UUID plantId, UUID photoId) {
         verifyOwner(herbariumId, userId);
-
-        Plant plant = plantRepository.findById(plantId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plant not found"));
-
-        if (!plant.getHerbariumId().equals(herbariumId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Plant not found");
-        }
-
-        PlantPhoto photo = plantPhotoRepository.findById(photoId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Photo not found"));
-
-        if (!photo.getPlant().getId().equals(plantId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Photo not found");
-        }
+        Plant plant = requirePlant(plantId, herbariumId);
+        PlantPhoto photo = requirePhoto(photoId, plantId);
 
         photoStorageService.delete(photo.getUrl());
         plantPhotoRepository.delete(photo);
@@ -419,6 +388,7 @@ public class PlantService {
         return new PlantResponse(targetPlant, photos);
     }
 
+    @SuppressWarnings("SameReturnValue")
     @Transactional
     public String deletePlant(UUID userId, UUID herbariumId, UUID plantId) {
         verifyOwner(herbariumId, userId);

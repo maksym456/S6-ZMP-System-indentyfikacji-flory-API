@@ -60,47 +60,8 @@ public class PlantIdentificationChoice {
         return recommendedPlants;
     }
 
-    public static class IdentificationInfo {
+    public record IdentificationInfo(String detectedSpecies, Double confidence, String speciesId, String family,
+                                     String genus, String commonNames) {
 
-        private final String detectedSpecies;
-        private final Double confidence;
-        private final String speciesId;
-        private final String family;
-        private final String genus;
-        private final String commonNames;
-
-        public IdentificationInfo(String detectedSpecies, Double confidence, String speciesId,
-                                  String family, String genus, String commonNames) {
-            this.detectedSpecies = detectedSpecies;
-            this.confidence = confidence;
-            this.speciesId = speciesId;
-            this.family = family;
-            this.genus = genus;
-            this.commonNames = commonNames;
-        }
-
-        public String getDetectedSpecies() {
-            return detectedSpecies;
-        }
-
-        public Double getConfidence() {
-            return confidence;
-        }
-
-        public String getSpeciesId() {
-            return speciesId;
-        }
-
-        public String getFamily() {
-            return family;
-        }
-
-        public String getGenus() {
-            return genus;
-        }
-
-        public String getCommonNames() {
-            return commonNames;
-        }
     }
 }

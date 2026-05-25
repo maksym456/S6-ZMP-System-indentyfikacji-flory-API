@@ -3,7 +3,6 @@ package com.ezielnik.api.herbarium;
 import com.ezielnik.api.friend.FriendshipRepository;
 import com.ezielnik.api.photo.PhotoStorageService;
 import com.ezielnik.api.photo.PlantPhotoRepository;
-import com.ezielnik.api.plant.Plant;
 import com.ezielnik.api.plant.PlantRepository;
 import com.ezielnik.api.user.User;
 import com.ezielnik.api.user.UserRepository;
@@ -14,6 +13,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
+
+import static com.ezielnik.api.admin.AdminService.getString;
 
 @Service
 public class HerbariumService {
@@ -116,6 +117,7 @@ public class HerbariumService {
         return new HerbariumResponse(savedHerbarium, plantRepository.countByHerbarium_Id(savedHerbarium.getId()));
     }
 
+    @SuppressWarnings("SameReturnValue")
     @Transactional
     public String deleteHerbarium(UUID userId, UUID herbariumId) {
         Herbarium herbarium = herbariumRepository.findById(herbariumId)
@@ -125,18 +127,7 @@ public class HerbariumService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You cannot delete this herbarium");
         }
 
-        List<Plant> plants = plantRepository.findByHerbarium_IdOrderByCreatedAtDesc(herbariumId);
-        if (!plants.isEmpty()) {
-            List<UUID> plantIds = plants.stream().map(Plant::getId).toList();
-            plantPhotoRepository.findByPlant_IdInOrderByCreatedAtAsc(plantIds)
-                    .forEach(photo -> photoStorageService.delete(photo.getUrl()));
-            plantPhotoRepository.deleteByPlant_IdIn(plantIds);
-        }
-
-        plantRepository.deleteByHerbarium_Id(herbariumId);
-        herbariumRepository.delete(herbarium);
-
-        return "Herbarium deleted successfully";
+        return getString(herbariumId, herbarium, plantRepository, plantPhotoRepository, photoStorageService, herbariumRepository);
     }
 
     private boolean isAdmin(UUID userId) {
