@@ -33,6 +33,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/users/register",
                                 "/users/login",
+                                "/users/refresh",
+                                "/users/logout",
                                 "/users/verify",
                                 "/users/resend-verification",
                                 "/users/forgot-password",
@@ -64,6 +66,7 @@ public class SecurityConfig {
         return (HttpServletRequest request) -> {
             String path = request.getRequestURI();
             if (path.equals("/users/register") || path.equals("/users/login")
+                    || path.equals("/users/refresh") || path.equals("/users/logout")
                     || path.equals("/users/verify") || path.equals("/users/resend-verification")
                     || path.equals("/users/forgot-password") || path.equals("/users/reset-password")
                     || path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui")

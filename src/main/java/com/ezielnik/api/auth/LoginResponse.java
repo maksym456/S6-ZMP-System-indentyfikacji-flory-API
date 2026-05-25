@@ -16,16 +16,18 @@ public class LoginResponse {
     private Boolean verified;
     private Boolean admin;
     private String token;
+    private String refreshToken;
     private Boolean requiresTwoFactor;
     private String preAuthToken;
 
-    public LoginResponse(String message, User user, String token) {
+    public LoginResponse(String message, User user, String token, String refreshToken) {
         this.message = message;
         this.id = user.getId();
         this.username = user.getUsername();
         this.email = user.getEmail();
         this.verified = user.isVerified();
         this.token = token;
+        this.refreshToken = refreshToken;
         this.admin = user.isAdmin();
 
         if (!user.isVerified()) {
@@ -74,6 +76,10 @@ public class LoginResponse {
 
     public String getToken() {
         return token;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
     }
 
     public Boolean getRequiresTwoFactor() {

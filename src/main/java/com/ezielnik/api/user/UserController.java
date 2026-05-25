@@ -29,12 +29,14 @@ public class UserController {
     private final UserService userService;
     private final TwoFactorService twoFactorService;
     private final FcmService fcmService;
+    private final RefreshTokenService refreshTokenService;
 
-    public UserController(JwtService jwtService, UserService userService, TwoFactorService twoFactorService, FcmService fcmService) {
+    public UserController(JwtService jwtService, UserService userService, TwoFactorService twoFactorService, FcmService fcmService, RefreshTokenService refreshTokenService) {
         this.jwtService = jwtService;
         this.userService = userService;
         this.twoFactorService = twoFactorService;
         this.fcmService = fcmService;
+        this.refreshTokenService = refreshTokenService;
     }
 
     @Operation(summary = "Register a new user")
@@ -64,7 +66,7 @@ public class UserController {
             twoFactorService.sendEmailCode(user.getId());
             return LoginResponse.twoFactorRequired(preAuthToken);
         }
-        return new LoginResponse("Logged in successfully", user, jwtService.generateToken(user));
+        return new LoginResponse("Logged in successfully", user, jwtService.generateToken(user), refreshTokenService.generate(user));
     }
 
     @Operation(summary = "Complete login with 2FA email code — requires pre-auth token from /login, not a regular JWT", security = @SecurityRequirement(name = "bearerAuth"))
@@ -82,7 +84,7 @@ public class UserController {
         }
         UUID userId = UUID.fromString(jwt.getSubject());
         User user = twoFactorService.verifyEmailCode(userId, request.getCode());
-        return new LoginResponse("Logged in successfully", user, jwtService.generateToken(user));
+        return new LoginResponse("Logged in successfully", user, jwtService.generateToken(user), refreshTokenService.generate(user));
     }
 
     @Operation(summary = "Enable email 2FA", security = @SecurityRequirement(name = "bearerAuth"))
@@ -319,5 +321,26 @@ public class UserController {
                                                      @RequestParam String token) {
         fcmService.unregisterToken(UUID.fromString(jwt.getSubject()), token);
         return ResponseEntity.ok("Device token removed");
+    }
+
+    @Operation(summary = "Refresh access token using a refresh token")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "New access token and refresh token returned"),
+            @ApiResponse(responseCode = "401", description = "Invalid or expired refresh token")
+    })
+    @PostMapping("/refresh")
+    public RefreshResponse refresh(@RequestBody RefreshRequest request) {
+        RefreshTokenService.TokenPair pair = refreshTokenService.validateAndRotate(request.getRefreshToken());
+        return new RefreshResponse(jwtService.generateToken(pair.user()), pair.refreshToken());
+    }
+
+    @Operation(summary = "Logout and invalidate refresh token")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Logged out successfully")
+    })
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(@RequestBody RefreshRequest request) {
+        refreshTokenService.revoke(request.getRefreshToken());
+        return ResponseEntity.ok("Logged out successfully");
     }
 }
