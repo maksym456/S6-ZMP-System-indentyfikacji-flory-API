@@ -1,4 +1,4 @@
-package com.ezielnik.api.auth.refresh;
+package com.ezielnik.api.auth.refresh_token;
 
 import com.ezielnik.api.auth.JwtProperties;
 import com.ezielnik.api.user.User;

@@ -1,11 +1,11 @@
 package com.ezielnik.api.user;
 
 import com.ezielnik.api.auth.*;
-import com.ezielnik.api.auth.refresh.RefreshRequest;
-import com.ezielnik.api.auth.refresh.RefreshResponse;
-import com.ezielnik.api.auth.refresh.RefreshTokenService;
-import com.ezielnik.api.auth.twofactor.TwoFactorService;
-import com.ezielnik.api.auth.twofactor.TwoFactorVerifyRequest;
+import com.ezielnik.api.auth.refresh_token.RefreshRequest;
+import com.ezielnik.api.auth.refresh_token.RefreshResponse;
+import com.ezielnik.api.auth.refresh_token.RefreshTokenService;
+import com.ezielnik.api.auth.two_factor_auth.TwoFactorService;
+import com.ezielnik.api.auth.two_factor_auth.TwoFactorVerifyRequest;
 import com.ezielnik.api.fcm.DeviceTokenRequest;
 import com.ezielnik.api.fcm.FcmService;
 import org.springframework.web.bind.annotation.*;

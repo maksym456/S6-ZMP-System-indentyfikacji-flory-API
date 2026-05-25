@@ -1,4 +1,4 @@
-package com.ezielnik.api.auth.twofactor;
+package com.ezielnik.api.auth.two_factor_auth;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

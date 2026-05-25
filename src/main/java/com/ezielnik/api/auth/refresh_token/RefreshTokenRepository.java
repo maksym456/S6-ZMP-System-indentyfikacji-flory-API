@@ -1,4 +1,4 @@
-package com.ezielnik.api.auth.refresh;
+package com.ezielnik.api.auth.refresh_token;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

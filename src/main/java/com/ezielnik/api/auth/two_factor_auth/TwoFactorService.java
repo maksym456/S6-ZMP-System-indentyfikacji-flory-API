@@ -1,4 +1,4 @@
-package com.ezielnik.api.auth.twofactor;
+package com.ezielnik.api.auth.two_factor_auth;
 
 import com.ezielnik.api.auth.EmailService;
 import com.ezielnik.api.user.User;

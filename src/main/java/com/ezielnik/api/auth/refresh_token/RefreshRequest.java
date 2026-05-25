@@ -1,4 +1,4 @@
-package com.ezielnik.api.auth.refresh;
+package com.ezielnik.api.auth.refresh_token;
 
 public class RefreshRequest {
     private String refreshToken;

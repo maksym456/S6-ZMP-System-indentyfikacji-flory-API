@@ -1,4 +1,4 @@
-package com.ezielnik.api.auth.twofactor;
+package com.ezielnik.api.auth.two_factor_auth;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;

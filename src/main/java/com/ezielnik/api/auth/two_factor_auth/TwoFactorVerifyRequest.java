@@ -1,4 +1,4 @@
-package com.ezielnik.api.auth.twofactor;
+package com.ezielnik.api.auth.two_factor_auth;
 
 public class TwoFactorVerifyRequest {
     private String code;
