@@ -1,6 +1,8 @@
 package com.ezielnik.api.user;
 
 import com.ezielnik.api.auth.*;
+import com.ezielnik.api.fcm.DeviceTokenRequest;
+import com.ezielnik.api.fcm.FcmService;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -26,11 +28,13 @@ public class UserController {
     private final JwtService jwtService;
     private final UserService userService;
     private final TwoFactorService twoFactorService;
+    private final FcmService fcmService;
 
-    public UserController(JwtService jwtService, UserService userService, TwoFactorService twoFactorService) {
+    public UserController(JwtService jwtService, UserService userService, TwoFactorService twoFactorService, FcmService fcmService) {
         this.jwtService = jwtService;
         this.userService = userService;
         this.twoFactorService = twoFactorService;
+        this.fcmService = fcmService;
     }
 
     @Operation(summary = "Register a new user")
@@ -287,5 +291,33 @@ public class UserController {
         request.setNewPassword(newPassword);
 
         return userService.resetPassword(request);
+    }
+
+    @Operation(summary = "Register FCM device token for push notifications", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Device token registered"),
+            @ApiResponse(responseCode = "400", description = "Token is required"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
+    @PostMapping("/me/fcm-token")
+    public ResponseEntity<String> registerFcmToken(@AuthenticationPrincipal Jwt jwt,
+                                                   @RequestBody DeviceTokenRequest request) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        User user = userService.me(userId);
+        fcmService.registerToken(userId, request.getToken(), user);
+        return ResponseEntity.ok("Device token registered");
+    }
+
+    @Operation(summary = "Unregister FCM device token", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Device token removed"),
+            @ApiResponse(responseCode = "400", description = "Token is required"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
+    @DeleteMapping("/me/fcm-token")
+    public ResponseEntity<String> unregisterFcmToken(@AuthenticationPrincipal Jwt jwt,
+                                                     @RequestParam String token) {
+        fcmService.unregisterToken(UUID.fromString(jwt.getSubject()), token);
+        return ResponseEntity.ok("Device token removed");
     }
 }

@@ -1,5 +1,6 @@
 package com.ezielnik.api.notification;
 
+import com.ezielnik.api.fcm.FcmService;
 import com.ezielnik.api.user.User;
 import com.ezielnik.api.user.UserRepository;
 import org.springframework.http.HttpStatus;
@@ -15,17 +16,21 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
+    private final FcmService fcmService;
 
     public NotificationService(NotificationRepository notificationRepository,
-                               UserRepository userRepository) {
+                               UserRepository userRepository,
+                               FcmService fcmService) {
         this.notificationRepository = notificationRepository;
         this.userRepository = userRepository;
+        this.fcmService = fcmService;
     }
 
     @Transactional
     public void createNotification(User user, String title, String message) {
         Notification notification = new Notification(user, title, message);
         notificationRepository.save(notification);
+        fcmService.sendToUser(user, title, message);
     }
 
     @Transactional(readOnly = true)
