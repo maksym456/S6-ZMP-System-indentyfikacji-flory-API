@@ -23,16 +23,18 @@ public class RefreshTokenService {
 
     private static final Logger log = LoggerFactory.getLogger(RefreshTokenService.class);
     private static final int TOKEN_BYTES = 32;
-    private static final long REFRESH_EXPIRY_DAYS = 30;
 
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
+    private final JwtProperties jwtProperties;
     private final SecureRandom secureRandom = new SecureRandom();
 
     public RefreshTokenService(RefreshTokenRepository refreshTokenRepository,
-                               UserRepository userRepository) {
+                               UserRepository userRepository,
+                               JwtProperties jwtProperties) {
         this.refreshTokenRepository = refreshTokenRepository;
         this.userRepository = userRepository;
+        this.jwtProperties = jwtProperties;
     }
 
     public record TokenPair(User user, String refreshToken) {}
@@ -44,7 +46,7 @@ public class RefreshTokenService {
         String randomPart = Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
         String rawToken = user.getId().toString() + ":" + randomPart;
         String hash = sha256(randomPart);
-        OffsetDateTime expiresAt = OffsetDateTime.now().plusDays(REFRESH_EXPIRY_DAYS);
+        OffsetDateTime expiresAt = OffsetDateTime.now().plusDays(jwtProperties.getRefreshExpirationDays());
         refreshTokenRepository.save(new RefreshToken(user, hash, expiresAt));
         return rawToken;
     }
