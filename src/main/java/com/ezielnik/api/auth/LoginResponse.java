@@ -1,6 +1,7 @@
 package com.ezielnik.api.auth;
 
 import com.ezielnik.api.user.User;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.util.UUID;
@@ -43,6 +44,7 @@ public class LoginResponse {
         return r;
     }
 
+    @JsonCreator
     public LoginResponse() {
     }
 
@@ -50,43 +52,87 @@ public class LoginResponse {
         return message;
     }
 
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
     public String getWarning() {
         return warning;
+    }
+
+    public void setWarning(String warning) {
+        this.warning = warning;
     }
 
     public UUID getId() {
         return id;
     }
 
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
     public String getUsername() {
         return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getEmail() {
         return email;
     }
 
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     public Boolean isVerified() {
         return verified;
+    }
+
+    public void setVerified(Boolean verified) {
+        this.verified = verified;
     }
 
     public Boolean isAdmin() {
         return admin;
     }
 
+    public void setAdmin(Boolean admin) {
+        this.admin = admin;
+    }
+
     public String getToken() {
         return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 
     public String getRefreshToken() {
         return refreshToken;
     }
 
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
+
     public Boolean getRequiresTwoFactor() {
         return requiresTwoFactor;
     }
 
+    public void setRequiresTwoFactor(Boolean requiresTwoFactor) {
+        this.requiresTwoFactor = requiresTwoFactor;
+    }
+
     public String getPreAuthToken() {
         return preAuthToken;
+    }
+
+    public void setPreAuthToken(String preAuthToken) {
+        this.preAuthToken = preAuthToken;
     }
 }

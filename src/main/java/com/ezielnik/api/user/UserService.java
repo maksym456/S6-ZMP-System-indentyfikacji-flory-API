@@ -193,7 +193,10 @@ public class UserService {
         }
 
         String verificationToken = jwtService.generateEmailVerificationToken(user);
-        emailService.sendVerificationEmail(user.getEmail(), verificationToken);
+        try {
+            emailService.sendVerificationEmail(user.getEmail(), verificationToken);
+        } catch (Exception ignored) {
+        }
 
         return "Verification email sent.";
     }
@@ -216,7 +219,10 @@ public class UserService {
         }
 
         String resetToken = jwtService.generatePasswordResetToken(user);
-        emailService.sendPasswordResetEmail(user.getEmail(), resetToken);
+        try {
+            emailService.sendPasswordResetEmail(user.getEmail(), resetToken);
+        } catch (Exception ignored) {
+        }
 
         return "If an account with this email exists, a password reset email has been sent.";
     }

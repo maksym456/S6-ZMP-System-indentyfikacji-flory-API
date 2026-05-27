@@ -51,6 +51,11 @@ public class AccountStatusInterceptor implements HandlerInterceptor {
             return false;
         }
 
+        if (path.equals("/users/verify-2fa") || path.equals("/users/2fa/send-email-code")) {
+            writeError(response, HttpStatus.FORBIDDEN, "Pre-authentication required");
+            return false;
+        }
+
         UUID userId = UUID.fromString(jwtAuthentication.getToken().getSubject());
 
         User user = userRepository.findById(userId).orElse(null);

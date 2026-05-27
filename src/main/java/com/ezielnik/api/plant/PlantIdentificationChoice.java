@@ -1,15 +1,16 @@
 package com.ezielnik.api.plant;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import java.util.List;
 
 public class PlantIdentificationChoice {
 
-    private final boolean resolved;
-    private final PlantResponse plant;
-    private final String pendingPhotoId;
-    private final String status;
-    private final IdentificationInfo identification;
-    private final List<PlantResponse> recommendedPlants;
+    private boolean resolved;
+    private PlantResponse plant;
+    private String pendingPhotoId;
+    private String status;
+    private IdentificationInfo identification;
+    private List<PlantResponse> recommendedPlants;
 
     private PlantIdentificationChoice(boolean resolved, PlantResponse plant, String pendingPhotoId,
                                       String status, IdentificationInfo identification,
@@ -20,6 +21,10 @@ public class PlantIdentificationChoice {
         this.status = status;
         this.identification = identification;
         this.recommendedPlants = recommendedPlants;
+    }
+
+    @JsonCreator
+    public PlantIdentificationChoice() {
     }
 
     public static PlantIdentificationChoice resolved(PlantResponse plant) {
@@ -40,24 +45,48 @@ public class PlantIdentificationChoice {
         return resolved;
     }
 
+    public void setResolved(boolean resolved) {
+        this.resolved = resolved;
+    }
+
     public PlantResponse getPlant() {
         return plant;
+    }
+
+    public void setPlant(PlantResponse plant) {
+        this.plant = plant;
     }
 
     public String getPendingPhotoId() {
         return pendingPhotoId;
     }
 
+    public void setPendingPhotoId(String pendingPhotoId) {
+        this.pendingPhotoId = pendingPhotoId;
+    }
+
     public String getStatus() {
         return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public IdentificationInfo getIdentification() {
         return identification;
     }
 
+    public void setIdentification(IdentificationInfo identification) {
+        this.identification = identification;
+    }
+
     public List<PlantResponse> getRecommendedPlants() {
         return recommendedPlants;
+    }
+
+    public void setRecommendedPlants(List<PlantResponse> recommendedPlants) {
+        this.recommendedPlants = recommendedPlants;
     }
 
     public record IdentificationInfo(String detectedSpecies, Double confidence, String speciesId, String family,

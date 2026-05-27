@@ -1,16 +1,17 @@
 package com.ezielnik.api.photo;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 public class PlantPhotoResponse {
 
-    private final UUID id;
-    private final UUID plantId;
-    private final String url;
-    private final String description;
-    private final Double confidence;
-    private final OffsetDateTime createdAt;
+    private UUID id;
+    private UUID plantId;
+    private String url;
+    private String description;
+    private Double confidence;
+    private OffsetDateTime createdAt;
 
     public PlantPhotoResponse(PlantPhoto photo) {
         this.id = photo.getId();
@@ -21,27 +22,55 @@ public class PlantPhotoResponse {
         this.createdAt = photo.getCreatedAt();
     }
 
+    @JsonCreator
+    public PlantPhotoResponse() {
+    }
+
     public UUID getId() {
         return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     public UUID getPlantId() {
         return plantId;
     }
 
+    public void setPlantId(UUID plantId) {
+        this.plantId = plantId;
+    }
+
     public String getUrl() {
         return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public String getDescription() {
         return description;
     }
 
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public Double getConfidence() {
         return confidence;
     }
 
+    public void setConfidence(Double confidence) {
+        this.confidence = confidence;
+    }
+
     public OffsetDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public void setCreatedAt(OffsetDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }

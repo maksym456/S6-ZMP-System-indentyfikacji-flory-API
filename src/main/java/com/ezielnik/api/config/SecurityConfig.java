@@ -81,11 +81,11 @@ public class SecurityConfig {
     public JwtDecoder jwtDecoder(JwtProperties jwtProperties) {
         SecretKey key = new SecretKeySpec(
                 jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8),
-                "HmacSHA256"
+                "HmacSHA512"
         );
 
         return NimbusJwtDecoder.withSecretKey(key)
-                .macAlgorithm(MacAlgorithm.HS256)
+                .macAlgorithm(MacAlgorithm.HS512)
                 .build();
     }
 }

@@ -52,7 +52,7 @@ public class RefreshTokenService {
         return rawToken;
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = org.springframework.web.server.ResponseStatusException.class)
     public TokenPair validateAndRotate(String rawToken) {
         String[] parts = rawToken == null ? new String[0] : rawToken.split(":", 2);
         if (parts.length != 2) {

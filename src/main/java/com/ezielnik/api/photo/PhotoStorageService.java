@@ -114,7 +114,7 @@ public class PhotoStorageService {
             files.forEach(path -> {
                 try {
                     BasicFileAttributes attrs = Files.readAttributes(path, BasicFileAttributes.class);
-                    if (attrs.creationTime().toInstant().isBefore(cutoff)) {
+                    if (attrs.lastModifiedTime().toInstant().isBefore(cutoff)) {
                         Files.deleteIfExists(path);
                     }
                 } catch (IOException ignored) {

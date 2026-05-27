@@ -1,5 +1,6 @@
 package com.ezielnik.api.user;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.util.UUID;
@@ -30,6 +31,7 @@ public class UserResponse {
         }
     }
 
+    @JsonCreator
     public UserResponse() {
     }
 
@@ -37,31 +39,63 @@ public class UserResponse {
         return id;
     }
 
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
     public String getUsername() {
         return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getEmail() {
         return email;
     }
 
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     public boolean isVerified() {
         return verified;
+    }
+
+    public void setVerified(boolean verified) {
+        this.verified = verified;
     }
 
     public boolean isActive() {
         return active;
     }
 
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
     public boolean isAdmin() {
         return admin;
+    }
+
+    public void setAdmin(boolean admin) {
+        this.admin = admin;
     }
 
     public boolean isEmailTwoFactorEnabled() {
         return emailTwoFactorEnabled;
     }
 
+    public void setEmailTwoFactorEnabled(boolean emailTwoFactorEnabled) {
+        this.emailTwoFactorEnabled = emailTwoFactorEnabled;
+    }
+
     public String getWarning() {
         return warning;
+    }
+
+    public void setWarning(String warning) {
+        this.warning = warning;
     }
 }

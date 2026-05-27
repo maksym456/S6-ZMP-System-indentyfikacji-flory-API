@@ -1,18 +1,19 @@
 package com.ezielnik.api.herbarium;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 public class HerbariumResponse {
 
-    private final UUID id;
-    private final UUID userId;
-    private final String name;
-    private final String description;
-    private final boolean isPublic;
-    private final long plantCount;
-    private final OffsetDateTime createdAt;
-    private final OffsetDateTime updatedAt;
+    private UUID id;
+    private UUID userId;
+    private String name;
+    private String description;
+    private boolean isPublic;
+    private long plantCount;
+    private OffsetDateTime createdAt;
+    private OffsetDateTime updatedAt;
 
     public HerbariumResponse(Herbarium herbarium, long plantCount) {
         this.id = herbarium.getId();
@@ -25,35 +26,71 @@ public class HerbariumResponse {
         this.updatedAt = herbarium.getUpdatedAt();
     }
 
+    @JsonCreator
+    public HerbariumResponse() {
+    }
+
     public UUID getId() {
         return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     public UUID getUserId() {
         return userId;
     }
 
+    public void setUserId(UUID userId) {
+        this.userId = userId;
+    }
+
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getDescription() {
         return description;
     }
 
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public boolean isPublic() {
         return isPublic;
     }
 
-    public OffsetDateTime getCreatedAt() {
-        return createdAt;
+    public void setPublic(boolean isPublic) {
+        this.isPublic = isPublic;
     }
 
     public long getPlantCount() {
         return plantCount;
     }
 
+    public void setPlantCount(long plantCount) {
+        this.plantCount = plantCount;
+    }
+
+    public OffsetDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(OffsetDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
     public OffsetDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public void setUpdatedAt(OffsetDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }
