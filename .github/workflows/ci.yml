@@ -23,7 +23,9 @@ jobs:
           cache: 'maven'
 
       - name: Run tests with coverage
-        run: ./mvnw verify -B
+        run: |
+          chmod +x ./mvnw
+          ./mvnw verify -B
         env:
           TESTCONTAINERS_RYUK_DISABLED: true
 
