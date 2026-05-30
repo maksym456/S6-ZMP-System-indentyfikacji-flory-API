@@ -229,6 +229,25 @@ class HerbariumIT extends IntegrationTestBase {
     }
 
     @Test
+    void createHerbarium_atLimit_returns409() {
+        registerAndVerify("alice", "alice@example.com", "Password1!");
+        String token = loginAndGetToken("alice", "Password1!");
+
+        jdbcTemplate.execute(
+                "INSERT INTO herbaria (id, user_id, name, is_public, created_at, updated_at) " +
+                "SELECT gen_random_uuid(), u.id, 'Herbarium ' || gs, false, now(), now() " +
+                "FROM users u, generate_series(1, 50) gs WHERE u.username = 'alice'"
+        );
+
+        ResponseEntity<String> resp = restTemplate.exchange(
+                "/herbaria", HttpMethod.POST,
+                withAuth(herbariumRequest("One Too Many", false), token),
+                String.class
+        );
+        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+    }
+
+    @Test
     void getMyHerbaria_withUpdatedSince_returnsOnlyUpdatedAfter() {
         registerAndVerify("alice", "alice@example.com", "Password1!");
         String token = loginAndGetToken("alice", "Password1!");

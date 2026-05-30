@@ -192,6 +192,9 @@ public class PlantService {
         if (id.isRecognized()) {
             Optional<Plant> exactMatch = findExactMatch(herbariumId, id);
             if (exactMatch.isPresent()) {
+                if (plantPhotoRepository.countByPlant_Id(exactMatch.get().getId()) >= 50) {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "Plant has reached the limit of 50 photos");
+                }
                 String photoUrl = photoStorageService.save(photo);
                 plantPhotoRepository.save(
                         new PlantPhoto(exactMatch.get(), photoUrl, photoDescription, id.confidence()));
@@ -214,6 +217,9 @@ public class PlantService {
                 return PlantIdentificationChoice.recognized(pendingPhotoId, info, recommendations);
             }
 
+            if (plantRepository.countByHerbarium_Id(herbariumId) >= 200) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Herbarium has reached the limit of 200 plants");
+            }
             Plant plant = findOrCreateRecognizedPlant(herbarium, id);
             String photoUrl = photoStorageService.save(photo);
             plantPhotoRepository.save(new PlantPhoto(plant, photoUrl, photoDescription, id.confidence()));
@@ -256,6 +262,10 @@ public class PlantService {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Plant not found");
             }
         } else if ("new".equals(decisionType)) {
+            if (plantRepository.countByHerbarium_Id(herbariumId) >= 200) {
+                photoStorageService.deletePendingFile(entry.pendingFilename());
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Herbarium has reached the limit of 200 plants");
+            }
             PlantIdentificationService.IdentificationResult id = entry.identification();
             if (id.isRecognized()) {
                 plant = findOrCreateRecognizedPlant(herbarium, id);
@@ -268,6 +278,10 @@ public class PlantService {
                     "decisionType must be 'existing' or 'new'");
         }
 
+        if (plantPhotoRepository.countByPlant_Id(plant.getId()) >= 50) {
+            photoStorageService.deletePendingFile(entry.pendingFilename());
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Plant has reached the limit of 50 photos");
+        }
         String photoUrl = photoStorageService.moveToPermanent(entry.pendingFilename());
         plantPhotoRepository.save(new PlantPhoto(plant, photoUrl, entry.photoDescription(),
                 entry.identification().confidence()));

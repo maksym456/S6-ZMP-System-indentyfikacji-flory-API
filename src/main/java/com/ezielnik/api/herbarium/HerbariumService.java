@@ -53,6 +53,10 @@ public class HerbariumService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "A herbarium with this name already exists");
         }
 
+        if (herbariumRepository.countByUser_Id(userId) >= 50) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "You have reached the limit of 50 herbaria");
+        }
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
