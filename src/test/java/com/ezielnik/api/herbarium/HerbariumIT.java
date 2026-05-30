@@ -229,6 +229,45 @@ class HerbariumIT extends IntegrationTestBase {
     }
 
     @Test
+    void getMyHerbaria_withUpdatedSince_returnsOnlyUpdatedAfter() {
+        registerAndVerify("alice", "alice@example.com", "Password1!");
+        String token = loginAndGetToken("alice", "Password1!");
+        HerbariumResponse old = createHerbarium(token, "Old", false);
+        HerbariumResponse recent = createHerbarium(token, "Recent", false);
+
+        jdbcTemplate.update("UPDATE herbaria SET updated_at = '2020-01-01 00:00:00+00' WHERE id = ?",
+                old.getId());
+
+        ResponseEntity<List<HerbariumResponse>> resp = restTemplate.exchange(
+                "/herbaria/me?updatedSince=2021-01-01T00:00:00Z", HttpMethod.GET,
+                withAuth(token), new ParameterizedTypeReference<>() {}
+        );
+
+        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+        List<HerbariumResponse> body = resp.getBody();
+        assertThat(body).hasSize(1);
+        assertThat(body.getFirst().getId()).isEqualTo(recent.getId());
+    }
+
+    @Test
+    void getMyHerbaria_withUpdatedSince_noMatch_returnsEmpty() {
+        registerAndVerify("alice", "alice@example.com", "Password1!");
+        String token = loginAndGetToken("alice", "Password1!");
+        HerbariumResponse h = createHerbarium(token, "My Garden", false);
+
+        jdbcTemplate.update("UPDATE herbaria SET updated_at = '2020-01-01 00:00:00+00' WHERE id = ?",
+                h.getId());
+
+        ResponseEntity<List<HerbariumResponse>> resp = restTemplate.exchange(
+                "/herbaria/me?updatedSince=2021-01-01T00:00:00Z", HttpMethod.GET,
+                withAuth(token), new ParameterizedTypeReference<>() {}
+        );
+
+        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getBody()).isEmpty();
+    }
+
+    @Test
     void getUserHerbaria_showsOnlyPublicForNonFriends() {
         registerAndVerify("alice", "alice@example.com", "Password1!");
         registerAndVerify("bob", "bob@example.com", "Password1!");

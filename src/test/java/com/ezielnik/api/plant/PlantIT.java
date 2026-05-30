@@ -279,6 +279,44 @@ class PlantIT extends IntegrationTestBase {
     }
 
     @Test
+    void getPlants_withUpdatedSince_returnsOnlyUpdatedAfter() {
+        ResponseEntity<PlantIdentificationChoice> add1 = addPlant(aliceToken, herbariumId);
+        PlantResponse plant1 = confirmPlantNew(Objects.requireNonNull(add1.getBody()).getPendingPhotoId());
+        ResponseEntity<PlantIdentificationChoice> add2 = addPlant(aliceToken, herbariumId);
+        PlantResponse plant2 = confirmPlantNew(Objects.requireNonNull(add2.getBody()).getPendingPhotoId());
+
+        jdbcTemplate.update("UPDATE plants SET updated_at = '2020-01-01 00:00:00+00' WHERE id = ?",
+                plant1.getId());
+
+        ResponseEntity<List<PlantResponse>> resp = restTemplate.exchange(
+                "/herbaria/" + herbariumId + "/plants?updatedSince=2021-01-01T00:00:00Z",
+                HttpMethod.GET, withAuth(aliceToken), new ParameterizedTypeReference<>() {}
+        );
+
+        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+        List<PlantResponse> body = resp.getBody();
+        assertThat(body).hasSize(1);
+        assertThat(body.getFirst().getId()).isEqualTo(plant2.getId());
+    }
+
+    @Test
+    void getPlants_withUpdatedSince_noMatch_returnsEmpty() {
+        ResponseEntity<PlantIdentificationChoice> add = addPlant(aliceToken, herbariumId);
+        PlantResponse plant = confirmPlantNew(Objects.requireNonNull(add.getBody()).getPendingPhotoId());
+
+        jdbcTemplate.update("UPDATE plants SET updated_at = '2020-01-01 00:00:00+00' WHERE id = ?",
+                plant.getId());
+
+        ResponseEntity<List<PlantResponse>> resp = restTemplate.exchange(
+                "/herbaria/" + herbariumId + "/plants?updatedSince=2021-01-01T00:00:00Z",
+                HttpMethod.GET, withAuth(aliceToken), new ParameterizedTypeReference<>() {}
+        );
+
+        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getBody()).isEmpty();
+    }
+
+    @Test
     void getPlants_publicHerbarium_accessibleWithoutAuth() {
         // Make herbarium public
         HerbariumRequest updateReq = new HerbariumRequest();

@@ -2,6 +2,7 @@ package com.ezielnik.api.plant;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -9,6 +10,8 @@ import java.util.UUID;
 public interface PlantRepository extends JpaRepository<Plant, UUID> {
 
     List<Plant> findByHerbarium_IdOrderByCreatedAtDesc(UUID herbariumId);
+
+    List<Plant> findByHerbarium_IdAndUpdatedAtAfterOrderByCreatedAtDesc(UUID herbariumId, OffsetDateTime updatedSince);
 
     long countByHerbarium_Id(UUID herbariumId);
 

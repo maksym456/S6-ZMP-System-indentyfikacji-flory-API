@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -276,10 +277,12 @@ public class PlantService {
     }
 
     @Transactional(readOnly = true)
-    public List<PlantResponse> getPlantsForHerbarium(UUID userId, UUID herbariumId) {
+    public List<PlantResponse> getPlantsForHerbarium(UUID userId, UUID herbariumId, OffsetDateTime updatedSince) {
         verifyAccess(herbariumId, userId);
 
-        List<Plant> plants = plantRepository.findByHerbarium_IdOrderByCreatedAtDesc(herbariumId);
+        List<Plant> plants = updatedSince != null
+                ? plantRepository.findByHerbarium_IdAndUpdatedAtAfterOrderByCreatedAtDesc(herbariumId, updatedSince)
+                : plantRepository.findByHerbarium_IdOrderByCreatedAtDesc(herbariumId);
         if (plants.isEmpty()) return List.of();
 
         List<UUID> plantIds = plants.stream().map(Plant::getId).toList();

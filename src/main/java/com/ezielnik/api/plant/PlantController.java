@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
@@ -16,6 +17,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -71,9 +73,10 @@ public class PlantController {
     })
     @GetMapping
     public List<PlantResponse> getPlants(Authentication authentication,
-                                         @PathVariable UUID herbariumId) {
+                                         @PathVariable UUID herbariumId,
+                                         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime updatedSince) {
         UUID userId = extractUserId(authentication);
-        return plantService.getPlantsForHerbarium(userId, herbariumId);
+        return plantService.getPlantsForHerbarium(userId, herbariumId, updatedSince);
     }
 
     @Operation(summary = "Get a single plant (public herbaria accessible without login)")

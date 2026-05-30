@@ -4,11 +4,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -51,9 +53,11 @@ public class HerbariumController {
             @ApiResponse(responseCode = "403", description = "Account inactive or email not verified")
     })
     @GetMapping("/me")
-    public List<HerbariumResponse> getMyHerbaria(@AuthenticationPrincipal Jwt jwt) {
+    public List<HerbariumResponse> getMyHerbaria(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime updatedSince) {
         UUID userId = UUID.fromString(jwt.getSubject());
-        return herbariumService.getMyHerbaria(userId);
+        return herbariumService.getMyHerbaria(userId, updatedSince);
     }
 
     @Operation(summary = "Get public herbaria")

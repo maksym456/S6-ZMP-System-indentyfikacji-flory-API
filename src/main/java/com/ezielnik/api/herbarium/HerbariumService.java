@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -68,9 +69,11 @@ public class HerbariumService {
     }
 
     @Transactional(readOnly = true)
-    public List<HerbariumResponse> getMyHerbaria(UUID userId) {
-        return herbariumRepository.findByUser_IdOrderByCreatedAtDesc(userId)
-                .stream()
+    public List<HerbariumResponse> getMyHerbaria(UUID userId, OffsetDateTime updatedSince) {
+        List<Herbarium> herbaria = updatedSince != null
+                ? herbariumRepository.findByUser_IdAndUpdatedAtAfterOrderByCreatedAtDesc(userId, updatedSince)
+                : herbariumRepository.findByUser_IdOrderByCreatedAtDesc(userId);
+        return herbaria.stream()
                 .map(h -> new HerbariumResponse(h, plantRepository.countByHerbarium_Id(h.getId())))
                 .toList();
     }
