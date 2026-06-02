@@ -86,7 +86,10 @@ public class PhotoController {
                     : "";
             MediaType mediaType = MEDIA_TYPES.getOrDefault(extension, MediaType.APPLICATION_OCTET_STREAM);
 
-            return ResponseEntity.ok().contentType(mediaType).body(resource);
+            return ResponseEntity.ok()
+                    .contentType(mediaType)
+                    .header("Cache-Control", "public, max-age=31536000, immutable")
+                    .body(resource);
 
         } catch (MalformedURLException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Photo not found");
