@@ -70,7 +70,8 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
-                "https://s6-zmp-system-indentyfikacji-flory-snowy.vercel.app"
+                "https://s6-zmp-system-indentyfikacji-flory-snowy.vercel.app",
+                "https://ezielnik-production.up.railway.app/swagger-ui/index.html#/"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
