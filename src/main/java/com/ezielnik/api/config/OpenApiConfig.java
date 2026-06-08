@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
-import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,8 +32,7 @@ public class OpenApiConfig {
                         .title("eZielnik API")
                         .version("1.0")
                         .description("REST API for the eZielnik flora identification app. Provides user authentication (JWT, email 2FA), herbarium and plant management, photo upload with identification via PlantNet, social features (friends, notifications), and admin panel.")
-                        .contact(new Contact().name("Ezielnik API"))
-                        .license(new License().name("Apache 2.0")))
+                        .contact(new Contact().name("Ezielnik API")))
                 .servers(List.of(new Server().url(baseUrl)))
                 .addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
     }

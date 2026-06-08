@@ -1,0 +1,1043 @@
+\documentclass[12pt,a4paper]{article}
+
+% -- Pakiety jezykowe i kodowanie --
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[polish]{babel}
+\usepackage{lmodern}
+\usepackage{indentfirst}      % Wciecia w pierwszych akapitach sekcji
+\usepackage{microtype}        % Mikrotypografia
+
+% -- Geometria strony --
+\usepackage[top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm]{geometry}
+
+% -- Pakiety dodatkowe --
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{graphicx}
+\usepackage{booktabs}         % Profesjonalne linie w tabelach
+\usepackage{longtable}        % Tabele lamane na wiele stron
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{enumitem}         % Lepsza kontrola nad listami
+\usepackage{listings}         % Bloki kodu zrodlowego
+\usepackage{xcolor}           % Kolory
+\usepackage{fancyhdr}         % Naglowki i stopki
+\usepackage{titlesec}         % Formatowanie naglowkow sekcji
+\usepackage{hyperref}         % Linki i interaktywny spis tresci
+
+% -- Konfiguracja pakietu hyperref --
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=black,
+    filecolor=magenta,
+    urlcolor=blue,
+    pdftitle={Sprawozdanie projektowe: System identyfikacji flory (e-zielnik)},
+    pdfauthor={Maksym Wilk, Adam Rudziewicz, Szymon Rogula, Sebastian Waga},
+    pdfpagemode=UseOutlines,
+    bookmarksopen=true
+}
+
+% -- Konfiguracja wygladu kodu (listings) --
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+% Styl dla diagramow / struktur ASCII (bez numeracji linii, monospace)
+\lstdefinestyle{ascii}{
+    backgroundcolor=\color{backcolour},
+    basicstyle=\ttfamily\scriptsize,
+    breaklines=false,
+    numbers=none,
+    keepspaces=true,
+    columns=fullflexible,
+    showspaces=false,
+    showstringspaces=false,
+    captionpos=b
+}
+
+% -- Lamanie wierszy: zapobieganie wystajacym poza margines liniom --
+\tolerance=400
+\setlength{\emergencystretch}{3em}
+
+% -- Naglowki i stopki --
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\itshape System identyfikacji flory (e-zielnik)}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% =========================================================================
+\begin{document}
+
+% -- Strona tytulowa --
+\begin{titlepage}
+\centering
+\vspace*{0.5cm}
+
+{\large Collegium Witelona Uczelnia Pa\'nstwowa\par}
+\vspace{0.3cm}
+{\large Wydzia\l{} Nauk Technicznych i Ekonomicznych\par}
+
+\vfill
+
+{\Huge\bfseries System identyfikacji flory\par}
+\vspace{0.5cm}
+{\LARGE (e-zielnik)\par}
+
+\vspace{1.4cm}
+\rule{0.8\textwidth}{0.4pt}\par
+\vspace{0.7cm}
+{\Large\bfseries Sprawozdanie z realizacji projektu zespo\l{}owego\par}
+\vspace{0.7cm}
+\rule{0.8\textwidth}{0.4pt}\par
+
+\vspace{2.0cm}
+
+{\large\bfseries Zesp\'o\l{} projektowy\par}
+\vspace{0.6cm}
+{\large
+\begin{tabular}{@{}ll@{}}
+Maksym Wilk (nr albumu 43900)      & Modu\l{} serwerowy (REST API) \\[3pt]
+Adam Rudziewicz (nr albumu 43882)  & Aplikacja mobilna \\[3pt]
+Szymon Rogula (nr albumu 43880)    & Aplikacja webowa \\[3pt]
+Sebastian Waga (nr albumu 43894)   & Aplikacja desktopowa \\
+\end{tabular}\par
+}
+
+\vfill
+
+{\large Przedmiot: Zespo\l{}owe metody programowania (ZMP)\par}
+\vspace{0.2cm}
+{\large Projekt zespo\l{}owy, semestr VI\par}
+\vspace{0.6cm}
+{\large Data: \today\par}
+
+\end{titlepage}
+
+% -- Spis tresci --
+\thispagestyle{fancy}
+\tableofcontents
+\newpage
+
+% =========================================================================
+\section{Wst\k{e}p}
+% =========================================================================
+
+Niniejsze sprawozdanie dokumentuje projekt zespo\l{}owy \textbf{e-zielnik}, czyli system identyfikacji flory umo\.zliwiaj\k{a}cy prowadzenie cyfrowego zielnika ro\'slin. System pozwala fotografowa\'c ro\'sliny, automatycznie rozpoznawa\'c ich gatunek za pomoc\k{a} zewn\k{e}trznego serwisu PlantNet, gromadzi\'c je w nazwanych zielnikach, opisywa\'c, udost\k{e}pnia\'c publicznie lub znajomym oraz otrzymywa\'c powiadomienia. Cz\k{e}\'s\'c administracyjna udost\k{e}pnia statystyki i narz\k{e}dzia moderacyjne.
+
+\subsection{Cel i zakres sprawozdania}
+
+Celem dokumentu jest ca\l{}o\'sciowe przedstawienie zrealizowanego systemu: jego funkcji, przyj\k{e}tych rozwi\k{a}za\'n technologicznych, podzia\l{}u prac w zespole, sposobu uruchomienia poszczeg\'olnych modu\l{}\'ow oraz wniosk\'ow ko\'ncowych ka\.zdego z autor\'ow. Sprawozdanie obejmuje wszystkie cztery modu\l{}y projektu, traktowane jako jedna sp\'ojna ca\l{}o\'s\'c.
+
+\subsection{Architektura systemu}
+
+System ma architektur\k{e} klient--serwer. Centralnym elementem jest \textbf{REST API}, z kt\'orego korzystaj\k{a} trzy niezale\.zne aplikacje klienckie:
+
+\begin{itemize}[label=\textbullet, leftmargin=1.5cm]
+    \item \textbf{Modu\l{} serwerowy (REST API)} -- napisany w technologiach Java oraz Spring Boot, z baz\k{a} danych PostgreSQL; realizuje ca\l{}o\'s\'c logiki biznesowej i przechowuje dane.
+    \item \textbf{Aplikacja mobilna} -- wieloplatformowy klient zbudowany w technologii Flutter (Dart), przeznaczony dla u\.zytkownik\'ow ko\'ncowych w terenie.
+    \item \textbf{Aplikacja webowa} -- jednostronicowa aplikacja (SPA) w technologii React oraz TypeScript, dost\k{e}pna z poziomu przegl\k{a}darki.
+    \item \textbf{Aplikacja desktopowa} -- natywny panel administracyjny dla komputer\'ow stacjonarnych, zbudowany w technologii WPF (.NET 8).
+\end{itemize}
+
+Wszystkie aplikacje klienckie komunikuj\k{a} si\k{e} z serwerem w formacie JSON poprzez protok\'o\l{} HTTP. Stan sesji jest bezstanowy -- uwierzytelnianie odbywa si\k{e} tokenem JWT.
+
+\subsection{Charakterystyka ilo\'sciowa projektu}
+
+Najwa\.zniejsze wielko\'sci charakteryzuj\k{a}ce poszczeg\'olne modu\l{}y zestawia tabela~\ref{tab:liczby}.
+
+\begin{table}[htbp]
+\centering
+\caption{Charakterystyka ilo\'sciowa modu\l{}\'ow projektu}
+\label{tab:liczby}
+\vspace{0.3em}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+\textbf{Modu\l{}} & \textbf{Wybrane wielko\'sci} \\
+\midrule
+REST API & ok. 6\,600 linii kodu produkcyjnego Java w 87 plikach, ok. 3\,900 linii kodu test\'ow w 22 plikach, 10 modu\l{}\'ow dziedzinowych, 9 encji, 8 kontroler\'ow REST, pr\'og pokrycia testami 80\,\% (JaCoCo); 77 rewizji w okresie marzec--czerwiec 2026 \\
+\addlinespace
+Aplikacja mobilna & architektura warstwowa (Clean Architecture), wzorzec BLoC, 33 testy jednostkowe, modele niemutowalne (Freezed) \\
+\addlinespace
+Aplikacja webowa & React 18 / TypeScript 5, architektura SPA, osiem \'swiadomie zastosowanych wzorc\'ow projektowych, autorska warstwa i18n \\
+\addlinespace
+Aplikacja desktopowa & WPF / .NET 8, architektura MVVM, lokalna baza SQLite, tryb offline z kolejk\k{a} synchronizacji, testy jednostkowe xUnit \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% =========================================================================
+\section{Opis funkcjonalny systemu}
+% =========================================================================
+
+\subsection{Przeznaczenie systemu}
+
+API realizuje logik\k{e} biznesow\k{a} cyfrowego zielnika. Odpowiada za rejestracj\k{e} i uwierzytelnianie u\.zytkownik\'ow, zarz\k{a}dzanie zielnikami oraz ro\'slinami, identyfikacj\k{e} gatunk\'ow na podstawie zdj\k{e}\'c, przechowywanie i serwowanie plik\'ow graficznych, funkcje spo\l{}eczno\'sciowe (znajomi), powiadomienia (w tym powiadomienia push) oraz panel administracyjny. Aplikacje klienckie udost\k{e}pniaj\k{a} te funkcje u\.zytkownikom w spos\'ob dostosowany do swojej platformy.
+
+\subsection{Aktorzy systemu}
+
+W systemie wyst\k{e}puj\k{a} trzy role:
+
+\begin{description}[leftmargin=2cm, style=nextline]
+    \item[Go\'s\'c] U\.zytkownik niezalogowany. Mo\.ze si\k{e} zarejestrowa\'c, zalogowa\'c, zresetowa\'c has\l{}o oraz przegl\k{a}da\'c publiczne zielniki wraz z ich ro\'slinami i zdj\k{e}ciami.
+    \item[U\.zytkownik] Konto zalogowane i ze zweryfikowanym adresem e-mail. Zarz\k{a}dza w\l{}asnymi zielnikami i ro\'slinami, dodaje ro\'sliny przez identyfikacj\k{e} ze zdj\k{e}cia, nawi\k{a}zuje znajomo\'sci, otrzymuje powiadomienia i mo\.ze w\l{}\k{a}czy\'c uwierzytelnianie dwusk\l{}adnikowe.
+    \item[Administrator] Konto z flag\k{a} \texttt{is\_admin}. Posiada wgl\k{a}d w statystyki systemu oraz narz\k{e}dzia moderacyjne (blokowanie kont, ostrze\.zenia, usuwanie tre\'sci).
+\end{description}
+
+Rola administratora nie jest osobn\k{a} encj\k{a}, lecz wynika z pola logicznego \texttt{is\_admin} w tabeli u\.zytkownik\'ow. Status konta wyznaczaj\k{a} dwie flagi: \texttt{is\_active} (konto aktywne) oraz \texttt{is\_verified} (zweryfikowany e-mail), egzekwowane globalnie przez \texttt{AccountStatusInterceptor}.
+
+\subsection{Realizowane wymagania funkcjonalne}
+
+Poni\.zsza tabela zestawia wymagania funkcjonalne projektu (oznaczenia OPZ \mbox{FLY-xx}) wraz ze sposobem ich realizacji po stronie API.
+
+\begin{small}
+\begin{longtable}{@{}p{1.4cm}p{4.6cm}p{8.0cm}@{}}
+\toprule
+\textbf{Nr} & \textbf{Funkcjonalno\'s\'c} & \textbf{Realizacja w API} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Nr} & \textbf{Funkcjonalno\'s\'c} & \textbf{Realizacja w API} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{3}{r}{\textit{ci\k{a}g dalszy na nast\k{e}pnej stronie}} \\
+\endfoot
+\bottomrule
+\endlastfoot
+FLY-01 & Pierwszy administrator dodany do systemu & Konto pierwszego administratora jest osadzane bezpo\'srednio w bazie danych; kolejni administratorzy przez \texttt{/users/\{userId\}/make-admin} \\ \addlinespace
+FLY-02 & Logowanie administratora & \texttt{POST /users/login} \\ \addlinespace
+FLY-03 & Podgl\k{a}d wszystkich zielnik\'ow & \texttt{GET /stats/herbaria}, \texttt{GET /stats/herbaria/\{id\}} \\ \addlinespace
+FLY-04 & Usuwanie zielnik\'ow u\.zytkownik\'ow & Usuni\k{e}cie zielnika u\.zytkownika (panel administratora) \\ \addlinespace
+FLY-05 & Usuwanie pojedynczych ro\'slin i zdj\k{e}\'c & \texttt{DELETE .../plants/\{plantId\}} oraz \texttt{.../photos/\{photoId\}} \\ \addlinespace
+FLY-06 & Usuwanie i blokowanie u\.zytkownik\'ow & \texttt{PATCH /users/\{id\}/ban}, \texttt{/unban}, \texttt{DELETE /users/\{id\}} \\ \addlinespace
+FLY-07 & Ostrze\.zenia i powiadomienia push & \texttt{POST /users/\{id\}/warning} (e-mail + powiadomienie + FCM) \\ \addlinespace
+FLY-08 & Statystyki systemowe & \texttt{GET /stats/overview}, \texttt{/stats/users} \\ \addlinespace
+FLY-09 & Przegl\k{a}danie publicznych zielnik\'ow przez go\'scia & \texttt{GET /herbaria/public}, \texttt{GET /herbaria/\{id\}/plants} \\ \addlinespace
+FLY-10 & Rejestracja & \texttt{POST /users/register} \\ \addlinespace
+FLY-11 & Logowanie & \texttt{POST /users/login} \\ \addlinespace
+FLY-12 & Reset has\l{}a & \texttt{POST /users/forgot-password}, \texttt{/users/reset-password} \\ \addlinespace
+FLY-13 & Dodawanie zielnik\'ow & \texttt{POST /herbaria} \\ \addlinespace
+FLY-14 & Dodawanie zdj\k{e}\'c i wykrywanie ro\'sliny & \texttt{POST /herbaria/\allowbreak{}\{id\}/\allowbreak{}plants/\allowbreak{}add} + \texttt{/confirm} \\ \addlinespace
+FLY-15 & Opisy ro\'slin i zdj\k{e}\'c & \texttt{PATCH .../plants/\{id\}}, \texttt{PATCH .../photos/\{id\}} \\ \addlinespace
+FLY-16 & Lista w\l{}asnych zielnik\'ow i ro\'slin & \texttt{GET /herbaria/me}, \texttt{GET .../plants} \\ \addlinespace
+FLY-17 & Ustawianie zielnika jako publicznego & \texttt{PATCH /herbaria/\{id\}} (pole \texttt{isPublic}) \\ \addlinespace
+FLY-18 & Dodawanie znajomych & \texttt{POST /friends/request}, \texttt{/accept} \\ \addlinespace
+FLY-19 & Widok zielnik\'ow znajomych i publicznych & \texttt{GET /herbaria/user/\{userId\}} (kontrola \texttt{areFriends}) \\ \addlinespace
+FLY-20 & Przegl\k{a}danie i por\'ownywanie ro\'slin znajomych & \texttt{GET .../plants}, \texttt{.../plants/\{id\}} \\ \addlinespace
+FLY-21 & Wylogowanie & \texttt{POST /users/logout} (uniewa\.znienie refresh tokenu) \\ \addlinespace
+FLY-22 & Obs\l{}uga j\k{e}zyka polskiego i angielskiego & Komunikaty API w j\k{e}zyku angielskim; warstwa j\k{e}zykowa interfejsu realizowana po stronie aplikacji klienckich \\
+\end{longtable}
+\end{small}
+
+\subsection{Kluczowe procesy biznesowe}
+
+\subsubsection{Uwierzytelnianie i bezpiecze\'nstwo konta}
+
+Rejestracja (\texttt{POST /users/register}) waliduje si\l{}\k{e} has\l{}a (minimum 8 znak\'ow, co najmniej jedna wielka litera, jedna cyfra oraz jeden znak specjalny), sprawdza unikalno\'s\'c adresu e-mail i nazwy u\.zytkownika, zapisuje hash has\l{}a (BCrypt) i wysy\l{}a wiadomo\'s\'c weryfikacyjn\k{a} przez us\l{}ug\k{e} Brevo. Adres e-mail jest normalizowany (przyci\k{e}cie i zamiana na ma\l{}e litery).
+
+Logowanie (\texttt{POST /users/login}) akceptuje login w postaci adresu e-mail lub nazwy u\.zytkownika. Po pomy\'slnym uwierzytelnieniu klient otrzymuje par\k{e} token\'ow: kr\'otko \.zyj\k{a}cy token dost\k{e}pu JWT (domy\'slnie 2 godziny, algorytm HS512) oraz d\l{}ugo \.zyj\k{a}cy, nieprzezroczysty refresh token (domy\'slnie 30 dni). Od\'swie\.zanie pary token\'ow (\texttt{POST /users/refresh}) odbywa si\k{e} z rotacj\k{a}: poprzedni refresh token jest kasowany, a wydawany jest nowy. System wykrywa ponowne u\.zycie uniewa\.znionego refresh tokenu i w reakcji uniewa\.znia wszystkie sesje danego u\.zytkownika.
+
+Opcjonalne uwierzytelnianie dwusk\l{}adnikowe (2FA) wykorzystuje 6-cyfrowy kod wysy\l{}any poczt\k{a} elektroniczn\k{a}. Gdy konto ma w\l{}\k{a}czone 2FA, logowanie zwraca token przej\'sciowy (\texttt{pre\_auth}, wa\.zny 5 minut), a pe\l{}en dost\k{e}p uzyskuje si\k{e} dopiero po potwierdzeniu kodu (\texttt{POST /users/verify-2fa}). Reset has\l{}a wykorzystuje token JWT zawieraj\k{a}cy tzw. wersj\k{e} has\l{}a (HMAC-SHA256 obliczony nad hashem has\l{}a). Dzi\k{e}ki temu link resetuj\k{a}cy automatycznie traci wa\.zno\'s\'c po zmianie has\l{}a, bez przechowywania stanu w bazie.
+
+\subsubsection{Identyfikacja ro\'slin}
+
+Najwa\.zniejsz\k{a} funkcj\k{a} domenow\k{a} jest dodawanie ro\'slin przez identyfikacj\k{e} ze zdj\k{e}cia. Proces jest dwuetapowy:
+
+\begin{enumerate}[leftmargin=1.6cm]
+    \item U\.zytkownik wysy\l{}a zdj\k{e}cie (\texttt{POST /herbaria/\allowbreak{}\{id\}/\allowbreak{}plants/\allowbreak{}add}, \texttt{multipart/\allowbreak{}form-data}). API przekazuje obraz do serwisu PlantNet i analizuje wynik. Mo\.zliwe s\k{a} trzy scenariusze:
+    \begin{itemize}[label=\textbullet, leftmargin=1.2cm]
+        \item \texttt{resolved} -- rozpoznano gatunek, a w zielniku istnieje ju\.z dopasowana ro\'slina (po identyfikatorze gatunku GBIF lub nazwie gatunkowej); zdj\k{e}cie zostaje od razu do\l{}\k{a}czone do istniej\k{a}cej ro\'sliny;
+        \item \texttt{recognized} -- rozpoznano gatunek, lecz istniej\k{a} tylko cz\k{e}\'sciowo pasuj\k{a}ce ro\'sliny; system zwraca list\k{e} rekomendacji i wymaga decyzji u\.zytkownika;
+        \item \texttt{unrecognized} -- gatunek nierozpoznany; wymagane jest potwierdzenie.
+    \end{itemize}
+    W dwóch ostatnich przypadkach zdj\k{e}cie jest tymczasowo zapisywane w katalogu \texttt{pending}, a metadane identyfikacji przechowywane s\k{a} w pami\k{e}ci.
+    \item U\.zytkownik potwierdza decyzj\k{e} (\texttt{POST /herbaria/\{id\}/plants/confirm}), wybieraj\k{a}c przypisanie do istniej\k{a}cej ro\'sliny (\texttt{existing}) lub utworzenie nowej (\texttt{new}). Plik jest przenoszony z katalogu tymczasowego do sta\l{}ego, a rekord ro\'sliny tworzony lub aktualizowany.
+\end{enumerate}
+
+Wpisy oczekuj\k{a}ce wygasaj\k{a} po godzinie i s\k{a} usuwane przez zadanie cykliczne uruchamiane co 5 minut. Ro\'slina przechowuje dane taksonomiczne pobrane z PlantNet: wykryty gatunek, identyfikator GBIF, rodzin\k{e}, rodzaj oraz nazwy zwyczajowe.
+
+\subsubsection{Zielniki, zdj\k{e}cia i funkcje spo\l{}eczno\'sciowe}
+
+Zielnik jest nazwanym pojemnikiem na ro\'sliny, domy\'slnie prywatnym. Obowi\k{a}zuj\k{a} limity: maksymalnie 50 zielnik\'ow na u\.zytkownika, 200 ro\'slin na zielnik oraz 50 zdj\k{e}\'c na ro\'slin\k{e}. Nazwa zielnika musi by\'c unikalna w obr\k{e}bie jednego u\.zytkownika (wymuszone r\'ownie\.z ograniczeniem bazodanowym). Usuni\k{e}cie ostatniego zdj\k{e}cia ro\'sliny automatycznie usuwa sam\k{a} ro\'slin\k{e} (ro\'slina nie istnieje bez zdj\k{e}\'c).
+
+Funkcje spo\l{}eczno\'sciowe opieraj\k{a} si\k{e} na encji znajomo\'sci o statusie \texttt{PENDING} lub \texttt{ACCEPTED}. Zaakceptowana znajomo\'s\'c nadaje obu stronom dost\k{e}p do prywatnych zielnik\'ow, ro\'slin i zdj\k{e}\'c drugiej osoby. Zaproszenia oraz ich akceptacja generuj\k{a} powiadomienia w aplikacji oraz, je\'sli skonfigurowano Firebase, powiadomienia push na urz\k{a}dzenia mobilne.
+
+\subsubsection{Panel administracyjny}
+
+Administrator dysponuje statystykami zbiorczymi (liczby u\.zytkownik\'ow, zielnik\'ow, ro\'slin i znajomo\'sci), mo\.ze przegl\k{a}da\'c szczeg\'o\l{}y kont i ich tre\'sci, blokowa\'c i odblokowywa\'c konta, nadawa\'c i odbiera\'c rol\k{e} administratora, wysy\l{}a\'c ostrze\.zenia (r\'ownolegle e-mailem i powiadomieniem push) oraz usuwa\'c tre\'sci u\.zytkownik\'ow. Usuni\k{e}cie konta jest realizowane jako anonimizacja (tzw. mi\k{e}kkie usuni\k{e}cie): konto jest dezaktywowane, a adres e-mail i nazwa u\.zytkownika nadpisywane wzorcami \texttt{deleted-...}, co zachowuje integralno\'s\'c powi\k{a}za\'n w bazie.
+
+\subsection{Realizacja funkcjonalno\'sci w aplikacjach klienckich}
+
+\subsubsection{Aplikacja mobilna}
+
+Aplikacja mobilna dostarcza u\.zytkownikom ko\'ncowym interaktywnego interfejsu do rozpoznawania ro\'slin w terenie. G\l{}\'owne funkcje obejmuj\k{a}:
+
+\begin{itemize}[label=\textbullet, leftmargin=1.5cm]
+    \item \textbf{Identyfikacja wspierana sztuczn\k{a} inteligencj\k{a}} -- wykonywanie zdj\k{e}\'c wbudowanym aparatem i przesy\l{}anie ich na serwer w celu analizy modelem uczenia maszynowego; wyniki zwracane s\k{a} wraz z procentowym stopniem pewno\'sci.
+    \item \textbf{Herbarium (zielnik offline)} -- tworzenie cyfrowej kolekcji odnalezionych ro\'slin z mo\.zliwo\'sci\k{a} przegl\k{a}dania bez dost\k{e}pu do internetu dzi\k{e}ki wbudowanej, szybkiej bazie lokalnej.
+    \item \textbf{Zarz\k{a}dzanie bezpiecze\'nstwem i profilem} -- rejestracja, uwierzytelnianie tokenami JWT z automatycznym od\'swie\.zaniem sesji oraz opcjonalne zabezpieczenie biometryczne (odcisk palca lub kod PIN urz\k{a}dzenia).
+    \item \textbf{Powiadomienia push} -- odbieranie powiadomie\'n asynchronicznych dzi\k{e}ki integracji z \textit{Firebase Cloud Messaging} (FCM).
+    \item \textbf{Wieloj\k{e}zyczno\'s\'c} -- dynamiczna zmiana j\k{e}zyka interfejsu (polski lub angielski) bez restartu aplikacji.
+\end{itemize}
+
+\subsubsection{Aplikacja webowa}
+
+Aplikacja webowa stanowi przegl\k{a}darkowy interfejs systemu. Zaimplementowane funkcje to:
+
+\begin{itemize}[label=\textbullet, leftmargin=1.5cm]
+    \item \textbf{Uwierzytelnianie u\.zytkownik\'ow} -- rejestracja z walidacj\k{a} has\l{}a w czasie rzeczywistym (si\l{}a has\l{}a, wymagania bezpiecze\'nstwa), logowanie z obs\l{}ug\k{a} token\'ow JWT, automatyczne od\'swie\.zanie sesji, wylogowanie z czyszczeniem stanu oraz automatyczne wylogowanie po 15 minutach bezczynno\'sci.
+    \item \textbf{Zarz\k{a}dzanie zielnikami} -- przegl\k{a}danie w\l{}asnych zielnik\'ow, widok ro\'slin wraz ze zdj\k{e}ciami i opisami botanicznymi (gatunek, rodzina, rodzaj, nazwy zwyczajowe).
+    \item \textbf{Przegl\k{a}danie publicznych zielnik\'ow} -- dost\k{e}p do kolekcji oznaczonych jako publiczne bez konieczno\'sci logowania.
+    \item \textbf{System znajomych} -- wyszukiwanie u\.zytkownik\'ow po nazwie, wysy\l{}anie i obs\l{}uga zaprosze\'n oraz przegl\k{a}danie zielnik\'ow znajomych.
+    \item \textbf{Por\'ownywanie ro\'slin} -- panel boczny umo\.zliwiaj\k{a}cy por\'ownanie ro\'sliny ze zbioru znajomego lub publicznego z w\l{}asn\k{a} ro\'slin\k{a}.
+    \item \textbf{System powiadomie\'n} -- dzwonek powiadomie\'n w pasku nawigacji z odpytywaniem co 30 sekund, oznaczanie jako przeczytane oraz usuwanie powiadomie\'n.
+    \item \textbf{Internacjonalizacja (i18n)} -- pe\l{}ne t\l{}umaczenie interfejsu na j\k{e}zyk polski i angielski, prze\l{}\k{a}czanie w czasie rzeczywistym bez prze\l{}adowania strony, t\l{}umaczenie komunikat\'ow walidacji.
+    \item \textbf{Responsywno\'s\'c} -- menu typu hamburger na urz\k{a}dzeniach mobilnych i dostosowanie uk\l{}adu do r\'o\.znych rozdzielczo\'sci.
+    \item \textbf{Odzyskiwanie has\l{}a} -- formularz resetowania has\l{}a przez e-mail.
+\end{itemize}
+
+\subsubsection{Aplikacja desktopowa}
+
+Aplikacja desktopowa jest narz\k{e}dziem administracyjnym uruchamianym na komputerach stacjonarnych. Umo\.zliwia administratorowi mi\k{e}dzy innymi:
+
+\begin{itemize}[label=\textbullet, leftmargin=1.5cm]
+    \item logowanie do systemu oraz zarz\k{a}dzanie u\.zytkownikami,
+    \item nadawanie i odbieranie uprawnie\'n administratora,
+    \item blokowanie i odblokowywanie u\.zytkownik\'ow oraz wysy\l{}anie ostrze\.ze\'n,
+    \item usuwanie kont u\.zytkownik\'ow,
+    \item zarz\k{a}dzanie ro\'slinami i przegl\k{a}danie statystyk systemu,
+    \item obs\l{}ug\k{e} powiadomie\'n,
+    \item prac\k{e} w trybie offline z lokaln\k{a} baz\k{a} danych.
+\end{itemize}
+
+% =========================================================================
+\section{Opis technologiczny}
+% =========================================================================
+
+\subsection{Modu\l{} serwerowy (REST API)}
+
+\subsubsection{Stos technologiczny}
+
+\begin{table}[htbp]
+\centering
+\caption{Stos technologiczny modu\l{}u serwerowego}
+\label{tab:stos_api}
+\vspace{0.3em}
+\begin{tabularx}{\textwidth}{@{}lll@{}}
+\toprule
+\textbf{Technologia} & \textbf{Wersja} & \textbf{Zastosowanie} \\
+\midrule
+Java & 21 & J\k{e}zyk programowania (LTS) \\
+Spring Boot & 4.0.6 & Szkielet aplikacji, autokonfiguracja \\
+Spring Web (MVC) & -- & Warstwa REST \\
+Spring Data JPA / Hibernate & -- & Mapowanie obiektowo-relacyjne (ORM) \\
+Spring Security + OAuth2 RS & -- & Uwierzytelnianie i autoryzacja (JWT) \\
+Bean Validation & -- & Walidacja danych wej\'sciowych \\
+PostgreSQL & -- & Relacyjna baza danych \\
+JJWT (jjwt) & 0.13.0 & Generowanie i podpisywanie token\'ow JWT \\
+springdoc-openapi & 3.0.2 & Dokumentacja OpenAPI / Swagger UI \\
+Bucket4j & 8.17.0 & Ograniczanie liczby \.z\k{a}da\'n (token bucket) \\
+Caffeine & 3.2.4 & Pami\k{e}\'c podr\k{e}czna dla rate limiting \\
+TwelveMonkeys imageio-webp & 3.12.0 & Dekodowanie obraz\'ow WebP \\
+Firebase Admin SDK & 9.9.0 & Powiadomienia push (FCM) \\
+Apache HttpClient 5 & -- & Klient HTTP \\
+Testcontainers & 1.21.4 & Testy integracyjne na realnym PostgreSQL \\
+JaCoCo & 0.8.14 & Pomiar pokrycia testami \\
+Maven (wrapper) & -- & Budowanie i zarz\k{a}dzanie zale\.zno\'sciami \\
+Docker & -- & Konteneryzacja (build wieloetapowy) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsubsection{Architektura aplikacji}
+
+Aplikacja ma klasyczn\k{a} budow\k{e} warstwow\k{a} stosowan\k{a} w aplikacjach Spring Boot:
+
+\begin{description}[leftmargin=1.4cm, style=nextline]
+    \item[Kontrolery (\texttt{*Controller})] przyjmuj\k{a} \.z\k{a}dania HTTP, odczytuj\k{a} to\.zsamo\'s\'c z tokenu JWT i deleguj\k{a} logik\k{e} do serwis\'ow.
+    \item[Serwisy (\texttt{*Service})] zawieraj\k{a} logik\k{e} biznesow\k{a}, walidacje i transakcje.
+    \item[Repozytoria (\texttt{*Repository})] interfejsy Spring Data JPA realizuj\k{a}ce dost\k{e}p do bazy (zapytania pochodne i adnotacja \texttt{@Query}).
+    \item[Encje (\texttt{@Entity})] obiekty mapowane na tabele bazy danych.
+    \item[Obiekty DTO (\texttt{*Request} / \texttt{*Response})] modele danych wej\'scia i wyj\'scia, odseparowane od encji.
+\end{description}
+
+Kod jest podzielony na pakiety dziedzinowe (jeden pakiet na obszar funkcjonalny), co u\l{}atwia orientacj\k{e} w projekcie:
+
+\begin{lstlisting}[style=ascii, caption=Struktura pakietow modulu API]
+com.ezielnik.api
+|-- admin                 panel administracyjny
+|   |-- content_management moderacja tresci (zielniki, rosliny, zdjecia)
+|   `-- user_management    moderacja kont uzytkownikow
+|-- auth                  uwierzytelnianie
+|   |-- refresh_token      rotacja tokenow odswiezajacych
+|   `-- two_factor_auth    uwierzytelnianie dwuskladnikowe (2FA)
+|-- config                konfiguracja (bezpieczenstwo, rate limit, bledy)
+|-- fcm                   powiadomienia push (Firebase Cloud Messaging)
+|-- friend                znajomi
+|-- herbarium             zielniki
+|-- notification          powiadomienia w aplikacji
+|-- photo                 przechowywanie i serwowanie zdjec
+|-- plant                 rosliny i identyfikacja (PlantNet)
+|-- user                  konta uzytkownikow (oraz endpointy auth)
+`-- ApiApplication        klasa startowa
+\end{lstlisting}
+
+Punkty ko\'ncowe uwierzytelniania nie maj\k{a} osobnego kontrolera, lecz znajduj\k{a} si\k{e} w \texttt{UserController} pod prefiksem \texttt{/users}.
+
+\subsubsection{Model danych}
+
+Baza danych zawiera 9 encji. Wszystkie klucze g\l{}\'owne s\k{a} typu UUID, generowane po stronie aplikacji w metodzie \texttt{@PrePersist}. Znaczniki czasu wykorzystuj\k{a} typ \texttt{OffsetDateTime}. Centralnym w\k{e}z\l{}em modelu jest encja \texttt{User}, do kt\'orej odwo\l{}uj\k{a} si\k{e} wszystkie pozosta\l{}e encje.
+
+\begin{table}[htbp]
+\centering
+\caption{Encje modelu danych modu\l{}u API}
+\label{tab:encje}
+\vspace{0.3em}
+\begin{small}
+\begin{tabularx}{\textwidth}{@{}llX@{}}
+\toprule
+\textbf{Encja} & \textbf{Tabela} & \textbf{Najwa\.zniejsze pola i powi\k{a}zania} \\
+\midrule
+User & \texttt{users} & e-mail (unikalny), nazwa (unikalna), hash has\l{}a, flagi \texttt{is\_active}, \texttt{is\_verified}, \texttt{is\_admin}, \texttt{email\_two\_factor\_enabled} \\ \addlinespace
+Herbarium & \texttt{herbaria} & nazwa, opis, \texttt{is\_public}; FK \texttt{user\_id}; unikalno\'s\'c pary (\texttt{user\_id}, \texttt{name}) \\ \addlinespace
+Plant & \texttt{plants} & nazwa, \texttt{detected\_species}, \texttt{species\_id}, rodzina, rodzaj, nazwy zwyczajowe; FK \texttt{herbarium\_id} \\ \addlinespace
+PlantPhoto & \texttt{plant\_photos} & \texttt{url}, opis, \texttt{confidence}; FK \texttt{plant\_id} \\ \addlinespace
+Friendship & \texttt{friendships} & status (\texttt{PENDING}/\texttt{ACCEPTED}); dwa FK do User: \texttt{requester\_id}, \texttt{addressee\_id} \\ \addlinespace
+Notification & \texttt{notifications} & \texttt{title}, \texttt{message}, \texttt{is\_read}; FK \texttt{user\_id} \\ \addlinespace
+RefreshToken & \texttt{refresh\_tokens} & \texttt{token\_hash} (unikalny), \texttt{expires\_at}; FK \texttt{user\_id} \\ \addlinespace
+TwoFactorCode & \texttt{two\_factor\_codes} & \texttt{code\_hash}, \texttt{expires\_at}, \texttt{used}; FK \texttt{user\_id} \\ \addlinespace
+DeviceToken & \texttt{device\_tokens} & \texttt{token} (unikalny, FCM); FK \texttt{user\_id} \\
+\bottomrule
+\end{tabularx}
+\end{small}
+\end{table}
+
+G\l{}\'own\k{a} hierarchi\k{e} stanowi tr\'ojpoziomowa kompozycja zielnika (\texttt{User} 1:N \texttt{Herbarium} 1:N \texttt{Plant} 1:N \texttt{PlantPhoto}). Encja \texttt{Friendship} modeluje relacj\k{e} samozwrotn\k{a} na \texttt{User} (dwa odr\k{e}bne odwo\l{}ania). Schematyczny model powi\k{a}za\'n przedstawia poni\.zszy diagram:
+
+\begin{lstlisting}[style=ascii, caption=Powiazania miedzy encjami (uproszczony diagram ER)]
+User (users)
+ |
+ |-- 1:N --> Herbarium (herbaria)
+ |               |
+ |               +-- 1:N --> Plant (plants)
+ |                               |
+ |                               +-- 1:N --> PlantPhoto (plant_photos)
+ |
+ |-- 1:N --> Notification (notifications)
+ |-- 1:N --> RefreshToken (refresh_tokens)
+ |-- 1:N --> DeviceToken  (device_tokens)
+ |-- 1:N --> TwoFactorCode (two_factor_codes)
+ |
+ `-- 1:N (requester_id / addressee_id) --> Friendship (friendships)
+\end{lstlisting}
+
+Schemat bazy jest tworzony automatycznie przez Hibernate (\texttt{spring.\allowbreak{}jpa.\allowbreak{}hibernate.\allowbreak{}ddl-\allowbreak{}auto=\allowbreak{}update}).
+
+\subsubsection{Bezpiecze\'nstwo}
+
+Bezpiecze\'nstwo jest realizowane na kilku poziomach:
+
+\begin{itemize}[label=\textbullet, leftmargin=1.5cm]
+    \item Has\l{}a i kody s\k{a} haszowane algorytmem BCrypt (\texttt{BCryptPasswordEncoder}); dotyczy to r\'ownie\.z jednorazowych kod\'ow 2FA.
+    \item Tokeny JWT s\k{a} podpisywane algorytmem symetrycznym HS512 (klucz z konfiguracji \texttt{JWT\_SECRET}). Dekodowanie realizuje \texttt{NimbusJwtDecoder}. Typy token\'ow (dost\k{e}pu, przej\'sciowy \texttt{pre\_auth}, weryfikacji e-mail, resetu has\l{}a) s\k{a} rozr\'o\.zniane przez deklaracj\k{e} \texttt{purpose}, co zapobiega u\.zyciu tokenu w niew\l{}a\'sciwym kontek\'scie.
+    \item Refresh tokeny s\k{a} przechowywane wy\l{}\k{a}cznie jako skr\'ot SHA-256 (nigdy w postaci jawnej), z rotacj\k{a} oraz wykrywaniem ponownego u\.zycia.
+    \item Konfiguracja Spring Security jest bezstanowa (\texttt{SessionCreationPolicy.\allowbreak{}STATELESS}), z wy\l{}\k{a}czonym CSRF, uwierzytelnianiem Basic i logowaniem formularzowym. Niestandardowy \texttt{BearerTokenResolver} pomija parsowanie tokenu dla \'sci\'sle wyliczonej listy \'scie\.zek publicznych.
+    \item Kontrola stanu konta (\texttt{AccountStatusInterceptor}) blokuje dost\k{e}p kontom nieaktywnym i niezweryfikowanym oraz egzekwuje, \.ze token \texttt{pre\_auth} dzia\l{}a wy\l{}\k{a}cznie na \'scie\.zkach 2FA.
+    \item Ograniczanie liczby \.z\k{a}da\'n (\texttt{RateLimitFilter}) wykorzystuje Bucket4j z pami\k{e}ci\k{a} podr\k{e}czn\k{a} Caffeine, dzia\l{}aj\k{a}c per adres IP (domy\'slnie 30 \.z\k{a}da\'n na minut\k{e}). Po przekroczeniu limitu zwracany jest kod \texttt{429 Too Many Requests} z nag\l{}\'owkiem \texttt{Retry-After}.
+    \item Kontrola dost\k{e}pu na poziomie obiektu sprawdza w\l{}asno\'s\'c zasobu (zielnika, ro\'sliny, zdj\k{e}cia, powiadomienia), a przy odczycie r\'ownie\.z relacj\k{e} znajomo\'sci oraz status publiczny. Operacje na plikach s\k{a} zabezpieczone przed atakiem typu path traversal.
+\end{itemize}
+
+\subsubsection{Integracje zewn\k{e}trzne}
+
+\begin{description}[leftmargin=1.4cm, style=nextline]
+    \item[PlantNet] serwis identyfikacji ro\'slin (\texttt{my-api.plantnet.org/v2/identify/all}). API wysy\l{}a zdj\k{e}cie metod\k{a} POST (multipart) z parametrami \texttt{nb-results=1} oraz \texttt{lang=en} i przetwarza najlepszy wynik. Wszelkie b\l{}\k{e}dy wywo\l{}ania s\k{a} obs\l{}ugiwane bezpiecznie (degradacja do \'scie\.zki ,,gatunek nierozpoznany'').
+    \item[Brevo] transakcyjna poczta elektroniczna (weryfikacja e-mail, reset has\l{}a, kody 2FA, ostrze\.zenia administracyjne), wywo\l{}ywana przez \texttt{RestClient}.
+    \item[Firebase Cloud Messaging] powiadomienia push wysy\l{}ane jako wiadomo\'s\'c multicast do wszystkich token\'ow urz\k{a}dze\'n u\.zytkownika. Inicjalizacja Firebase jest opcjonalna (zmienna \texttt{FIREBASE\_\allowbreak{}SERVICE\_\allowbreak{}ACCOUNT\_\allowbreak{}JSON}); przy jej braku powiadomienia w aplikacji nadal dzia\l{}aj\k{a}, a push jest cicho wy\l{}\k{a}czany. Nieaktualne tokeny urz\k{a}dze\'n s\k{a} automatycznie usuwane.
+\end{description}
+
+\subsubsection{Przechowywanie zdj\k{e}\'c}
+
+Zdj\k{e}cia s\k{a} obs\l{}ugiwane przez \texttt{PhotoStorageService}. Ka\.zdy przes\l{}any obraz (tak\.ze w formacie WebP, dekodowanym dzi\k{e}ki bibliotece TwelveMonkeys) jest konwertowany do formatu JPEG z jako\'sci\k{a} 0,85 i zapisywany pod losow\k{a} nazw\k{a} \texttt{UUID.jpeg}. Pliki przechowywane s\k{a} w katalogu wskazanym przez \texttt{PHOTO\_STORAGE\_PATH} (z podkatalogiem \texttt{pending} na pliki oczekuj\k{a}ce). Serwowanie plik\'ow (\texttt{GET /photos/\{filename\}}) ustawia d\l{}ug\k{a} pami\k{e}\'c podr\k{e}czn\k{a} (\texttt{Cache-Control: public, max-age=31536000, immutable}), co jest bezpieczne dzi\k{e}ki niezmiennym nazwom plik\'ow.
+
+\subsubsection{Interfejs REST}
+
+Poni\.zsza tabela zestawia najwa\.zniejsze punkty ko\'ncowe API w podziale na kontrolery.
+
+\begin{small}
+\begin{longtable}{@{}p{1.8cm}p{8.4cm}>{\raggedright\arraybackslash}p{4.6cm}@{}}
+\toprule
+\textbf{Metoda} & \textbf{\'Scie\.zka} & \textbf{Dost\k{e}p} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Metoda} & \textbf{\'Scie\.zka} & \textbf{Dost\k{e}p} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{3}{r}{\textit{ci\k{a}g dalszy na nast\k{e}pnej stronie}} \\
+\endfoot
+\bottomrule
+\endlastfoot
+\multicolumn{3}{@{}l}{\textbf{UserController (uwierzytelnianie i konto), prefiks \texttt{/users}}} \\
+\addlinespace
+POST   & \texttt{/users/register} & publiczny \\
+POST   & \texttt{/users/login} & publiczny \\
+POST   & \texttt{/users/verify-2fa} & token \texttt{pre\_auth} \\
+POST   & \texttt{/users/2fa/email/enable} & zalogowany \\
+POST   & \texttt{/users/2fa/disable} & zalogowany \\
+POST   & \texttt{/users/2fa/send-email-code} & token \texttt{pre\_auth} \\
+GET    & \texttt{/users/me} & zalogowany \\
+DELETE & \texttt{/users/me} & zalogowany \\
+GET    & \texttt{/users/verify} & publiczny \\
+POST   & \texttt{/users/resend-verification} & publiczny \\
+POST   & \texttt{/users/forgot-password} & publiczny \\
+GET    & \texttt{/users/reset-password} & publiczny (formularz) \\
+POST   & \texttt{/users/reset-password} & publiczny \\
+POST   & \texttt{/users/refresh} & publiczny (refresh token) \\
+POST   & \texttt{/users/logout} & publiczny (refresh token) \\
+POST   & \texttt{/users/me/fcm-token} & zalogowany \\
+DELETE & \texttt{/users/me/fcm-token} & zalogowany \\
+\addlinespace
+\multicolumn{3}{@{}l}{\textbf{HerbariumController, prefiks \texttt{/herbaria}}} \\
+\addlinespace
+POST   & \texttt{/herbaria} & zalogowany \\
+GET    & \texttt{/herbaria/me} & zalogowany \\
+GET    & \texttt{/herbaria/public} & publiczny \\
+GET    & \texttt{/herbaria/user/\{userId\}} & zalogowany \\
+GET    & \texttt{/herbaria/\{id\}} & w\l{}a\'sciciel / publiczny / znajomy / admin \\
+PATCH  & \texttt{/herbaria/\{id\}} & w\l{}a\'sciciel \\
+DELETE & \texttt{/herbaria/\{id\}} & w\l{}a\'sciciel \\
+\addlinespace
+\multicolumn{3}{@{}l}{\textbf{PlantController, prefiks \texttt{/herbaria/\{herbariumId\}/plants}}} \\
+\addlinespace
+POST   & \texttt{/.../plants/add} & w\l{}a\'sciciel \\
+POST   & \texttt{/.../plants/confirm} & w\l{}a\'sciciel \\
+GET    & \texttt{/.../plants} & publiczny / znajomy / w\l{}a\'sciciel \\
+GET    & \texttt{/.../plants/\{plantId\}} & publiczny / znajomy / w\l{}a\'sciciel \\
+PATCH  & \texttt{/.../plants/\{plantId\}} & w\l{}a\'sciciel \\
+DELETE & \texttt{/.../plants/\{plantId\}} & w\l{}a\'sciciel \\
+GET    & \texttt{/.../\allowbreak{}plants/\allowbreak{}\{plantId\}/\allowbreak{}photos/\allowbreak{}\{photoId\}} & publiczny / znajomy / w\l{}a\'sciciel \\
+PATCH  & \texttt{/.../\allowbreak{}plants/\allowbreak{}\{plantId\}/\allowbreak{}photos/\allowbreak{}\{photoId\}} & w\l{}a\'sciciel \\
+DELETE & \texttt{/.../\allowbreak{}plants/\allowbreak{}\{plantId\}/\allowbreak{}photos/\allowbreak{}\{photoId\}} & w\l{}a\'sciciel \\
+POST   & \texttt{/.../\allowbreak{}plants/\allowbreak{}\{plantId\}/\allowbreak{}photos/\allowbreak{}\{photoId\}/\allowbreak{}move} & w\l{}a\'sciciel \\
+\addlinespace
+\multicolumn{3}{@{}l}{\textbf{PhotoController}} \\
+\addlinespace
+GET    & \texttt{/photos/\{filename\}} & publiczny / znajomy / w\l{}a\'sciciel \\
+\addlinespace
+\multicolumn{3}{@{}l}{\textbf{FriendshipController, prefiks \texttt{/friends}}} \\
+\addlinespace
+POST   & \texttt{/friends/request} & zalogowany \\
+POST   & \texttt{/friends/\{id\}/accept} & adresat \\
+DELETE & \texttt{/friends/\{id\}} & strona relacji \\
+GET    & \texttt{/friends} & zalogowany \\
+GET    & \texttt{/friends/requests} & zalogowany \\
+GET    & \texttt{/friends/requests/sent} & zalogowany \\
+\addlinespace
+\multicolumn{3}{@{}l}{\textbf{NotificationController, prefiks \texttt{/notifications}}} \\
+\addlinespace
+GET    & \texttt{/notifications} & zalogowany \\
+GET    & \texttt{/notifications/unread} & zalogowany \\
+PATCH  & \texttt{/notifications/\{id\}/read} & w\l{}a\'sciciel \\
+PATCH  & \texttt{/notifications/read-all} & zalogowany \\
+\addlinespace
+\multicolumn{3}{@{}l}{\textbf{Kontrolery administracyjne (\texttt{/stats}, \texttt{/users})}} \\
+\addlinespace
+GET    & \texttt{/stats/overview} & administrator \\
+GET    & \texttt{/stats/users} & administrator \\
+GET    & \texttt{/stats/users/\{userId\}} & administrator \\
+GET    & \texttt{/stats/users/\{userId\}/friends} & administrator \\
+GET    & \texttt{/stats/herbaria} & administrator \\
+GET    & \texttt{/stats/herbaria/\{herbariumId\}} & administrator \\
+PATCH  & \texttt{/users/\{userId\}/ban} & administrator \\
+PATCH  & \texttt{/users/\{userId\}/unban} & administrator \\
+PATCH  & \texttt{/users/\{userId\}/make-admin} & administrator \\
+PATCH  & \texttt{/users/\{userId\}/remove-admin} & administrator \\
+POST   & \texttt{/users/\{userId\}/warning} & administrator \\
+DELETE & \texttt{/users/\{userId\}} & administrator \\
+DELETE & \texttt{/users/\allowbreak{}\{userId\}/\allowbreak{}herbaria/\allowbreak{}\{herbariumId\}} & administrator \\
+DELETE & \texttt{/users/\allowbreak{}\{userId\}/\allowbreak{}.../\allowbreak{}plants/\allowbreak{}\{plantId\}} & administrator \\
+DELETE & \texttt{/users/\allowbreak{}\{userId\}/\allowbreak{}.../\allowbreak{}photos/\allowbreak{}\{photoId\}} & administrator \\
+\end{longtable}
+\end{small}
+
+Pe\l{}na, interaktywna dokumentacja jest generowana automatycznie (springdoc-openapi) i dost\k{e}pna pod adresem \texttt{/swagger-ui.html} oraz \texttt{/v3/api-docs}.
+
+\subsubsection{Testy i jako\'s\'c kodu}
+
+Strategia testowania jest dwupoziomowa:
+
+\begin{itemize}[label=\textbullet, leftmargin=1.5cm]
+    \item \textbf{Testy integracyjne} (sufiks \texttt{IT}, 14 plik\'ow) uruchamiaj\k{a} pe\l{}ny kontekst Spring Boot na losowym porcie i korzystaj\k{a} z prawdziwej bazy PostgreSQL udost\k{e}pnianej przez Testcontainers. Klasa bazowa \texttt{IntegrationTestBase} czy\'sci baz\k{e} przed ka\.zdym testem oraz dostarcza metody pomocnicze (rejestracja, logowanie, nag\l{}\'owki autoryzacji). Us\l{}ugi zewn\k{e}trzne (Brevo, PlantNet, magazyn plik\'ow) s\k{a} podmieniane na atrapy (\texttt{@MockitoBean}).
+    \item \textbf{Testy jednostkowe} (sufiks \texttt{Test}, 4 pliki) dzia\l{}aj\k{a} bez kontekstu Springa, na czystym JUnit 5 i Mockito (m.in. logika JWT, rotacja refresh token\'ow, konwersja zdj\k{e}\'c, mechanizm ro\'slin oczekuj\k{a}cych).
+\end{itemize}
+
+Pokrycie testami jest mierzone wtyczk\k{a} JaCoCo z progiem 80\,\% instrukcji (z wy\l{}\k{a}czeniem pakietu konfiguracyjnego oraz klas DTO). Zestaw test\'ow obejmuje mi\k{e}dzy innymi kontrol\k{e} dost\k{e}pu, ograniczanie liczby \.z\k{a}da\'n, walidacj\k{e} danych, odporno\'s\'c na awari\k{e} poczty oraz limit rozmiaru przesy\l{}anego pliku.
+
+\subsubsection{Integracja ci\k{a}g\l{}a (CI)}
+
+Repozytorium korzysta z GitHub Actions (plik \texttt{.github/workflows/ci.yml}). Przy ka\.zdym push oraz pull request na ga\l{}\k{a}\'z \texttt{master} uruchamiany jest job, kt\'ory konfiguruje JDK 21, wykonuje \texttt{./mvnw verify -B} (kompilacja, testy oraz weryfikacja progu pokrycia), a na ko\'ncu publikuje raport JaCoCo jako artefakt. W \'srodowisku CI mechanizm Ryuk Testcontainers jest wy\l{}\k{a}czony.
+
+\subsection{Aplikacja mobilna (Flutter)}
+
+\subsubsection{Stos i architektura}
+
+Aplikacja mobilna to wieloplatformowy projekt zrealizowany w frameworku \textbf{Flutter} przy u\.zyciu j\k{e}zyka \textbf{Dart}. Zastosowano wzorzec \textbf{Clean Architecture} po\l{}\k{a}czony ze wzorcem \textbf{Repository Pattern}, z hermetycznym podzia\l{}em na warstw\k{e} \textit{domeny} (czysta logika biznesowa, abstrakcje), warstw\k{e} \textit{danych} (konkretne implementacje) oraz warstw\k{e} \textit{prezentacji} (UI). Architektura \'sci\'sle przestrzega regu\l{} \textbf{SOLID}, \textbf{DRY} oraz \textbf{KISS}.
+
+\subsubsection{Zarz\k{a}dzanie stanem i warstwa sieciowa}
+
+Komunikacja pomi\k{e}dzy interfejsem graficznym a logik\k{a} biznesow\k{a} opiera si\k{e} na reaktywnym wzorcu \textit{Business Logic Component} (\textbf{BLoC}). Interfejs u\.zytkownika s\l{}ucha emitowanych strumieni danych (\textit{Stream}), reaguj\k{a}c wy\l{}\k{a}cznie na jawnie zdefiniowane stany.
+
+Do obs\l{}ugi protoko\l{}u HTTP wykorzystano bibliotek\k{e} \textit{Dio}. Zaimplementowano w niej wzorzec \textit{Interceptor}, kt\'ory automatycznie dokleja i od\'swie\.za tokeny JWT, zdejmuj\k{a}c z programisty obowi\k{a}zek dopisywania nag\l{}\'owk\'ow bezpiecze\'nstwa do ka\.zdego \.z\k{a}dania. Do obs\l{}ugi b\l{}\k{e}d\'ow napisano globalny, scentralizowany mapper wyj\k{a}tk\'ow.
+
+\subsubsection{Pami\k{e}\'c lokalna i wstrzykiwanie zale\.zno\'sci}
+
+Jako lokaln\k{a} baz\k{e} danych zastosowano system \textit{Hive} -- wydajn\k{a} baz\k{e} NoSQL o strukturze klucz--warto\'s\'c, gwarantuj\k{a}c\k{a} b\l{}yskawiczne wczytywanie zielnika z pomini\k{e}ciem op\'o\.znie\'n sieciowych. Wra\.zliwe dane, takie jak tokeny uwierzytelniaj\k{a}ce, przechowywane s\k{a} w \textit{FlutterSecureStorage}. Do wstrzykiwania zale\.zno\'sci wykorzystano paczk\k{e} \textit{GetIt}, pe\l{}ni\k{a}c\k{a} rol\k{e} mechanizmu \textit{Service Locator} i realizuj\k{a}c\k{a} zasad\k{e} odwr\'ocenia sterowania (\textit{Inversion of Control}).
+
+\subsubsection{Testy i jako\'s\'c kodu}
+
+O bezb\l{}\k{e}dno\'s\'c architektury dba zestaw \textbf{33 automatycznych test\'ow jednostkowych}. Sp\'ojno\'s\'c i jako\'s\'c zapisu egzekwuje rygorystyczny zestaw regu\l{} lintera (\textit{flutter\_lints}). Narz\k{e}dzie \textit{Freezed} zabezpiecza modele danych, narzucaj\k{a}c im kompletn\k{a} niemutowalno\'s\'c (\textit{immutability}).
+
+\subsection{Aplikacja webowa (React / TypeScript)}
+
+\subsubsection{Stos technologiczny}
+
+\begin{table}[htbp]
+\centering
+\caption{Stos technologiczny aplikacji webowej}
+\label{tab:stos_web}
+\vspace{0.3em}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Technologia} & \textbf{Wersja} & \textbf{Zastosowanie} \\
+\midrule
+React & 18 & Biblioteka UI \\
+TypeScript & 5 & Typowanie statyczne \\
+Vite & 5 & Bundler i serwer deweloperski \\
+React Router & 6 & Routing SPA \\
+Axios & -- & Komunikacja HTTP \\
+React Hook Form & -- & Zarz\k{a}dzanie formularzami \\
+Zod & -- & Walidacja schemat\'ow \\
+Vitest & -- & Testy jednostkowe \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Architektura aplikacji}
+
+Aplikacja jest jednostronicow\k{a} (SPA) z routingiem po stronie klienta. Komunikacja z backendem odbywa si\k{e} przez REST API przy u\.zyciu biblioteki Axios. Kod podzielony jest na warstwy:
+
+\begin{itemize}[label=\textbullet, leftmargin=1.5cm]
+    \item \texttt{src/api/} -- warstwa komunikacji z API (\texttt{axiosConfig}, \texttt{authApi}, \texttt{herbariaApi}, \texttt{friendsApi}, \texttt{notificationsApi}),
+    \item \texttt{src/pages/} -- komponenty stron (\texttt{LoginPage}, \texttt{RegisterPage}, \texttt{Dashboard}, \texttt{PublicHerbaria}, \texttt{FriendsPage}, \texttt{PlantDetail} i inne),
+    \item \texttt{src/components/} -- komponenty wielokrotnego u\.zytku (\texttt{ProtectedRoute}, \texttt{NotificationBell}),
+    \item \texttt{src/\allowbreak{}hooks/} -- hooki React (\texttt{useTranslation}, \texttt{useIdleLogout}, \texttt{useNotifications}),
+    \item \texttt{src/i18n/} -- pliki t\l{}umacze\'n (\texttt{pl.ts}, \texttt{en.ts}),
+    \item \texttt{src/types/} -- definicje typ\'ow TypeScript,
+    \item \texttt{src/utils/} -- funkcje pomocnicze (\texttt{photoUrl}),
+    \item \texttt{src/schemats/} -- schematy walidacji Zod.
+\end{itemize}
+
+\subsubsection{Wzorce projektowe}
+
+W projekcie \'swiadomie zastosowano nast\k{e}puj\k{a}ce wzorce projektowe:
+
+\begin{itemize}[label=\textbullet, leftmargin=1.5cm]
+    \item \textbf{Observer} -- hook \texttt{useTranslation} nas\l{}uchuje na zdarzenie \texttt{langChange} (\texttt{CustomEvent}) rozsy\l{}ane przy zmianie j\k{e}zyka; wszystkie komponenty aktualizuj\k{a} si\k{e} bez prze\l{}adowania strony.
+    \item \textbf{Strategy} -- funkcja \texttt{createRegisterSchema(lang)} dynamicznie tworzy schemat walidacji Zod z komunikatami w odpowiednim j\k{e}zyku.
+    \item \textbf{Singleton} -- plik \texttt{axiosConfig.ts} eksportuje jedn\k{a} instancj\k{e} klienta Axios wsp\'o\l{}dzielon\k{a} przez ca\l{}y projekt.
+    \item \textbf{Proxy} -- interceptory Axios przechwytuj\k{a} wszystkie \.z\k{a}dania HTTP: request interceptor dok\l{}ada token JWT, response interceptor obs\l{}uguje wyga\'sni\k{e}cie sesji i automatyczny refresh tokenu.
+    \item \textbf{Facade} -- obiekty \texttt{herbariaApi}, \texttt{friendsApi}, \texttt{authApi} ukrywaj\k{a} szczeg\'o\l{}y komunikacji HTTP za prostym interfejsem metod.
+    \item \textbf{Null Object} -- funkcja \texttt{photoUrl()} zwraca \texttt{null} zamiast rzuca\'c wyj\k{a}tek dla niebezpiecznych protoko\l{}\'ow URL (\texttt{javascript:}, \texttt{data:}, \texttt{vbscript:}).
+    \item \textbf{Chain of Responsibility} -- interceptory Axios tworz\k{a} \l{}a\'ncuch przetwarzania: dodanie tokenu, wys\l{}anie \.z\k{a}dania, pr\'oba od\'swie\.zenia przy 401, przekierowanie do logowania.
+    \item \textbf{Mediator} -- komponent \texttt{AppContent} koordynuje routing, pasek nawigacji, idle logout i powiadomienia bez bezpo\'sredniej komunikacji mi\k{e}dzy tymi elementami.
+\end{itemize}
+
+\subsubsection{Autoryzacja i internacjonalizacja}
+
+Autoryzacja opiera si\k{e} na tokenach JWT. Token dost\k{e}pu przechowywany jest w \texttt{localStorage} i do\l{}\k{a}czany do ka\.zdego \.z\k{a}dania przez interceptor Axios. Przy odpowiedzi 401 interceptor automatycznie pr\'obuje od\'swie\.zy\'c sesj\k{e}; w razie niepowodzenia u\.zytkownik jest wylogowywany i przekierowywany do strony logowania. Dodatkowo hook \texttt{useIdleLogout} automatycznie wylogowuje u\.zytkownika po 15 minutach bezczynno\'sci.
+
+System i18n oparty jest na w\l{}asnej implementacji bez zewn\k{e}trznych bibliotek. T\l{}umaczenia przechowywane s\k{a} w plikach \texttt{pl.ts} i \texttt{en.ts} jako obiekty TypeScript. Zmiana j\k{e}zyka rozsy\l{}ana jest przez \texttt{CustomEvent} na obiekcie \texttt{window}, dzi\k{e}ki czemu wszystkie komponenty reaguj\k{a} na zmian\k{e} bez potrzeby przekazywania stanu przez props.
+
+\subsection{Aplikacja desktopowa (WPF / .NET)}
+
+\subsubsection{Stos i architektura}
+
+Aplikacja desktopowa jest natywnym panelem administracyjnym zbudowanym w technologii \textbf{WPF (.NET 8)} przy u\.zyciu j\k{e}zyka \textbf{C\#}. Projekt zrealizowano zgodnie z architektur\k{a} \textbf{MVVM} (Model--View--ViewModel). Stos technologiczny zestawia tabela~\ref{tab:stos_desktop}.
+
+\begin{table}[htbp]
+\centering
+\caption{Stos technologiczny aplikacji desktopowej}
+\label{tab:stos_desktop}
+\vspace{0.3em}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Technologia} & \textbf{Zastosowanie} \\
+\midrule
+C\# & Logika aplikacji \\
+.NET 8 & Platforma uruchomieniowa \\
+WPF & Interfejs u\.zytkownika \\
+MVVM & Architektura aplikacji \\
+HttpClient & Komunikacja z API \\
+SQLite & Lokalna baza danych \\
+JWT & Uwierzytelnianie \\
+xUnit & Testy jednostkowe \\
+CommunityToolkit.Mvvm & Obs\l{}uga MVVM \\
+XAML & Definicja interfejsu \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Aplikacj\k{e} podzielono na warstwy. \textbf{Modele} przechowuj\k{a} dane otrzymywane z API (m.in. \texttt{AdminUserResponse}, \texttt{PlantResponse}, \texttt{PlantDetailsResponse}, \texttt{NotificationResponse}, \texttt{StatsOverviewResponse}, \texttt{ApiResult<T>}). \textbf{Us\l{}ugi} odpowiadaj\k{a} za komunikacj\k{e} z API i operacje biznesowe (\texttt{AuthService}, \texttt{UsersService}, \texttt{PlantsService}, \texttt{NotificationsService}, \texttt{InternetService}, \texttt{LocalDatabaseService}). \textbf{ViewModele} po\'srednicz\k{a} mi\k{e}dzy widokami a us\l{}ugami (\texttt{LoginViewModel}, \texttt{MainViewModel}, \texttt{UsersViewModel}, \texttt{PlantsViewModel}, \texttt{NotificationsViewModel}). \textbf{Widoki} tworzone s\k{a} przy u\.zyciu WPF i XAML.
+
+\subsubsection{Komunikacja z API i bezpiecze\'nstwo}
+
+Panel komunikuje si\k{e} z REST API za pomoc\k{a} klasy \texttt{HttpClient}. Logowanie realizowane jest poprzez API: po poprawnym uwierzytelnieniu pobierany jest token JWT, przechowywany przez \texttt{AuthService}, a wszystkie kolejne \.z\k{a}dania s\k{a} autoryzowane. Aplikacja automatycznie wylogowuje u\.zytkownika po 5 minutach bezczynno\'sci.
+
+W zakresie bezpiecze\'nstwa zaimplementowano: uwierzytelnianie JWT, autoryzacj\k{e} administratora, automatyczne wylogowanie po bezczynno\'sci, gwarancj\k{e} pojedynczej instancji aplikacji (Mutex), obs\l{}ug\k{e} b\l{}\k{e}d\'ow HTTP oraz centralizacj\k{e} logiki autoryzacji.
+
+\subsubsection{Tryb offline i synchronizacja}
+
+Jednym z wymaga\'n projektu by\l{}a mo\.zliwo\'s\'c dzia\l{}ania w trybie offline. W tym celu zaimplementowano lokaln\k{a} baz\k{e} SQLite obs\l{}ugiwan\k{a} przez \texttt{LocalDatabaseService} (tworzenie bazy i tabel oraz zarz\k{a}dzanie kolejk\k{a} synchronizacji). Lokalna baza zawiera tabele: \texttt{Herbaria} (zielniki), \texttt{Plants} (ro\'sliny), \texttt{Photos} (zdj\k{e}cia), \texttt{SyncQueue} (operacje oczekuj\k{a}ce na synchronizacj\k{e}) oraz \texttt{Metadata} (metadane aplikacji).
+
+W przypadku braku po\l{}\k{a}czenia dane przechowywane s\k{a} lokalnie. Po odzyskaniu po\l{}\k{a}czenia odczytywana jest kolejka \texttt{SyncQueue}, operacje s\k{a} wysy\l{}ane do API, a poprawnie wykonane oznaczane jako zsynchronizowane. Stan po\l{}\k{a}czenia monitoruje komponent \texttt{InternetService}, sprawdzaj\k{a}c go cyklicznie co 3 sekundy; przy utracie po\l{}\k{a}czenia aplikacja przechodzi w tryb offline, korzysta z lokalnych danych i informuje u\.zytkownika o zmianie stanu.
+
+Aplikacja implementuje r\'ownie\.z lokalny cache zdj\k{e}\'c (\texttt{PhotoCacheService}): pobiera zdj\k{e}cia z API, przechowuje je lokalnie, umo\.zliwia odczyt bez po\l{}\k{a}czenia oraz automatycznie usuwa pliki starsze ni\.z 7 dni, co ogranicza liczb\k{e} zapyta\'n do serwera.
+
+\subsubsection{Wieloj\k{e}zyczno\'s\'c, wzorce i testy}
+
+Aplikacja wspiera j\k{e}zyk polski i angielski. Realizacj\k{e} oparto na \texttt{ResourceDictionary} oraz klasie \texttt{LanguageManager} (pliki \texttt{Strings.pl.xaml} i \texttt{Strings.en.xaml}); zmiana j\k{e}zyka odbywa si\k{e} dynamicznie, bez ponownego uruchamiania aplikacji.
+
+W projekcie zastosowano wzorce projektowe: \textbf{Singleton} (m.in. \texttt{AuthService}, \texttt{UsersService}, \texttt{InternetService}, \texttt{LocalDatabaseService}, \texttt{MainViewModel}), \textbf{MVVM} jako podstawowy wzorzec architektoniczny, \textbf{Repository} (\texttt{LocalPlantsRepository}, \texttt{LocalPhotosRepository}, \texttt{LocalHerbariaRepository}), \textbf{Command} (\texttt{RelayCommand}, \texttt{AsyncRelayCommand}) oraz \textbf{Observer} (\texttt{INotifyPropertyChanged}, \texttt{InternetStatusChanged}).
+
+Projekt zawiera testy jednostkowe wykonane przy u\.zyciu biblioteki xUnit, obejmuj\k{a}ce mi\k{e}dzy innymi \texttt{AuthService}, logik\k{e} wylogowania, przechowywanie token\'ow i danych u\.zytkownika oraz podstawowe elementy ViewModeli. Wszystkie testy przechodz\k{a} pomy\'slnie.
+
+% =========================================================================
+\section{Podzia\l{} obowi\k{a}zk\'ow i odpowiedzialno\'sci w zespole}
+% =========================================================================
+
+Projekt e-zielnik by\l{} realizowany przez czteroosobowy zesp\'o\l{}. Przyj\k{e}to podzia\l{} oparty o platformy docelowe: ka\.zdy z cz\l{}onk\'ow zespo\l{}u odpowiada\l{} za odr\k{e}bny modu\l{} systemu oraz jego repozytorium. Centralnym elementem \l{}\k{a}cz\k{a}cym wszystkie aplikacje klienckie jest modu\l{} REST API.
+
+\begin{table}[htbp]
+\centering
+\caption{Podzia\l{} odpowiedzialno\'sci cz\l{}onk\'ow zespo\l{}u projektowego}
+\label{tab:zespol}
+\vspace{0.3em}
+\begin{tabularx}{\textwidth}{@{}p{3.4cm}p{1.6cm}X@{}}
+\toprule
+\textbf{Cz\l{}onek zespo\l{}u} & \textbf{Nr albumu} & \textbf{Modu\l{} i technologie} \\
+\midrule
+Maksym Wilk & 43900 & REST API (cz\k{e}\'s\'c serwerowa) -- Java, Spring Boot, Maven, PostgreSQL \\ \addlinespace
+Adam Rudziewicz & 43882 & Aplikacja mobilna -- Dart, Flutter \\ \addlinespace
+Szymon Rogula & 43880 & Aplikacja webowa -- TypeScript, React, Vite \\ \addlinespace
+Sebastian Waga & 43894 & Aplikacja desktopowa -- C\#, .NET \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+W ramach modu\l{}u serwerowego (Maksym Wilk) zrealizowano projekt architektury warstwowej i modelu danych, implementacj\k{e} wszystkich kontroler\'ow REST i logiki serwis\'ow, kompletny podsystem uwierzytelniania (JWT, refresh tokeny z rotacj\k{a}, 2FA, weryfikacja e-mail, reset has\l{}a), integracje zewn\k{e}trzne (PlantNet, Brevo, Firebase Cloud Messaging), podsystem zielnik\'ow, ro\'slin i zdj\k{e}\'c, funkcje spo\l{}eczno\'sciowe i powiadomienia, panel administracyjny, mechanizmy bezpiecze\'nstwa, komplet test\'ow jednostkowych i integracyjnych oraz konfiguracj\k{e} konteneryzacji, proces CI i wdro\.zenie zdalne.
+
+W ramach modu\l{}u mobilnego (Adam Rudziewicz) zaprojektowano i zaimplementowano aplikacj\k{e} we Flutterze w architekturze Clean Architecture z BLoC, warstw\k{e} UX/UI w stylu Material Design, lokaln\k{a} baz\k{e} Hive, interceptory Dio, integracj\k{e} z Firebase FCM, testy jednostkowe oraz proces budowania pakiet\'ow APK.
+
+W ramach modu\l{}u webowego (Szymon Rogula) powsta\l{}a responsywna aplikacja w React i TypeScript wraz z implementacj\k{a} logiki biznesowej frontendu, systemu i18n oraz integracj\k{a} z API.
+
+W ramach modu\l{}u desktopowego (Sebastian Waga) zrealizowano natywny panel administracyjny w technologii C\# i .NET (WPF) z architektur\k{a} MVVM, trybem offline opartym o SQLite, synchronizacj\k{a} danych oraz lokalnym cache zdj\k{e}\'c.
+
+% =========================================================================
+\section{Instrukcja uruchomienia systemu}
+% =========================================================================
+
+\subsection{Modu\l{} serwerowy (REST API)}
+
+\subsubsection{Wymagania wst\k{e}pne}
+
+\begin{itemize}[label=\textbullet, leftmargin=1.5cm]
+    \item JDK 21 (zalecany Eclipse Temurin),
+    \item dzia\l{}aj\k{a}ca instancja PostgreSQL (dla uruchomienia lokalnego),
+    \item opcjonalnie Docker i Docker Compose (dla uruchomienia kontenerowego),
+    \item klucz API serwisu PlantNet; opcjonalnie klucz Brevo oraz dane konta serwisowego Firebase.
+\end{itemize}
+
+Maven nie musi by\'c instalowany globalnie -- w repozytorium znajduje si\k{e} wrapper (\texttt{./mvnw}).
+
+\subsubsection{Konfiguracja zmiennych \'srodowiskowych}
+
+Aplikacja wczytuje konfiguracj\k{e} z pliku \texttt{.env.properties} w katalogu g\l{}\'ownym (import opcjonalny w \texttt{application.properties}). Przyk\l{}adowa zawarto\'s\'c:
+
+\begin{lstlisting}[caption=Przykladowy plik .env.properties, numbers=none]
+DB_URL=jdbc:postgresql://localhost:5432/
+DB_USERNAME=postgres
+DB_PASSWORD=postgres
+JWT_SECRET=<dlugi-losowy-sekret-base64>
+JWT_EXPIRATION_MS=604800000
+JWT_REFRESH_EXPIRATION_DAYS=30
+PLANTNET_API_KEY=<klucz-plantnet>
+BREVO_API_KEY=<klucz-brevo-opcjonalnie>
+MAIL_FROM=ezielnik.app@gmail.com
+APP_BASE_URL=http://localhost:8080
+PHOTO_STORAGE_PATH=./photos
+PORT=8080
+\end{lstlisting}
+
+Plik \texttt{.env.properties} zawiera dane wra\.zliwe i nie jest umieszczany w repozytorium; warto\'sci produkcyjne dostarczane s\k{a} wy\l{}\k{a}cznie przez zmienne \'srodowiskowe. Najwa\.zniejsze zmienne zestawia tabela~\ref{tab:env}.
+
+\begin{table}[htbp]
+\centering
+\caption{Najwa\.zniejsze zmienne \'srodowiskowe modu\l{}u API}
+\label{tab:env}
+\vspace{0.3em}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+\textbf{Zmienna} & \textbf{Znaczenie} \\
+\midrule
+\texttt{DB\_URL}, \texttt{DB\_USERNAME}, \texttt{DB\_PASSWORD} & Parametry po\l{}\k{a}czenia z baz\k{a} PostgreSQL \\ \addlinespace
+\texttt{JWT\_SECRET} & Sekret podpisuj\k{a}cy tokeny JWT (wymagany) \\ \addlinespace
+\texttt{JWT\_EXPIRATION\_MS} & Czas \.zycia tokenu dost\k{e}pu \\ \addlinespace
+\texttt{JWT\_REFRESH\_EXPIRATION\_DAYS} & Czas \.zycia refresh tokenu (domy\'slnie 30 dni) \\ \addlinespace
+\texttt{PLANTNET\_API\_KEY} & Klucz API serwisu identyfikacji ro\'slin \\ \addlinespace
+\texttt{BREVO\_API\_KEY} & Klucz API poczty transakcyjnej (opcjonalny) \\ \addlinespace
+\texttt{FIREBASE\_\allowbreak{}SERVICE\_\allowbreak{}ACCOUNT\_\allowbreak{}JSON} & Konto serwisowe Firebase dla powiadomie\'n push (opcjonalne) \\ \addlinespace
+\texttt{PHOTO\_STORAGE\_PATH} & Katalog przechowywania zdj\k{e}\'c \\ \addlinespace
+\texttt{APP\_BASE\_URL} & Publiczny adres aplikacji (linki w wiadomo\'sciach e-mail) \\ \addlinespace
+\texttt{PORT} & Port nas\l{}uchu serwera (domy\'slnie 8080) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsubsection{Uruchomienie lokalne}
+
+\begin{enumerate}[leftmargin=1.6cm]
+    \item Uruchom lokaln\k{a} baz\k{e} PostgreSQL nas\l{}uchuj\k{a}c\k{a} na \texttt{localhost:5432} (zgodnie z \texttt{DB\_URL}).
+    \item Utw\'orz plik \texttt{.env.properties} zgodnie z powy\.zszym wzorem.
+    \item Schemat bazy zostanie utworzony automatycznie przy starcie aplikacji (Hibernate, tryb \texttt{update}).
+    \item Uruchom aplikacj\k{e} jednym ze sposob\'ow:
+\end{enumerate}
+
+\begin{lstlisting}[language=bash, caption=Uruchomienie w trybie deweloperskim]
+# wariant 1: bezposrednie uruchomienie
+./mvnw spring-boot:run
+
+# wariant 2: budowa pakietu i uruchomienie artefaktu
+./mvnw clean package
+java -jar target/S6-ZMP-System-indentyfikacji-flory-API-1.0.jar
+\end{lstlisting}
+
+Po starcie aplikacja jest dost\k{e}pna pod adresem \texttt{http://localhost:8080}, a dokumentacja Swagger UI pod \texttt{http://localhost:8080/swagger-ui.html}.
+
+\subsubsection{Uruchomienie kontenerowe (Docker Compose)}
+
+Repozytorium zawiera pliki \texttt{Dockerfile} (build wieloetapowy) oraz \texttt{compose.yaml} definiuj\k{a}cy us\l{}ugi bazy danych i aplikacji wraz z trwa\l{}ym wolumenem na zdj\k{e}cia. Pe\l{}ne \'srodowisko mo\.zna uruchomi\'c jednym poleceniem:
+
+\begin{lstlisting}[language=bash, caption=Uruchomienie przez Docker Compose]
+docker compose up --build
+\end{lstlisting}
+
+Compose ustawia adres bazy na \texttt{jdbc:postgresql://postgres:5432/postgres}, katalog zdj\k{e}\'c na \texttt{/data/\allowbreak{}photos} (zamontowany jako wolumen \texttt{photos}) oraz publikuje port 8080.
+
+\subsubsection{Uruchomienie zdalne (Railway)}
+
+Aplikacja jest wdra\.zana na platformie Railway na podstawie pliku \texttt{Dockerfile}. Kroki wdro\.zenia:
+
+\begin{enumerate}[leftmargin=1.6cm]
+    \item Platforma buduje obraz na podstawie wykrytego \texttt{Dockerfile} (build wieloetapowy: kompilacja w obrazie JDK, uruchomienie w obrazie JRE).
+    \item Nale\.zy pod\l{}\k{a}czy\'c us\l{}ug\k{e} PostgreSQL Railway, kt\'ora dostarcza parametry po\l{}\k{a}czenia (\texttt{DB\_URL}, \texttt{DB\_USERNAME}, \texttt{DB\_PASSWORD}). Port nas\l{}uchu jest wstrzykiwany przez zmienn\k{a} \texttt{PORT}.
+    \item W panelu Railway ustawia si\k{e} zmienne \'srodowiskowe produkcyjne: \texttt{JWT\_SECRET}, \texttt{PLANTNET\_API\_KEY}, opcjonalnie \texttt{BREVO\_API\_KEY}, \texttt{FIREBASE\_\allowbreak{}SERVICE\_\allowbreak{}ACCOUNT\_\allowbreak{}JSON}, \texttt{MAIL\_FROM} oraz \texttt{APP\_BASE\_URL}.
+    \item Zdj\k{e}cia przechowywane s\k{a} na trwa\l{}ym wolumenie Railway (\texttt{PHOTO\_\allowbreak{}STORAGE\_\allowbreak{}PATH=\allowbreak{}/data/\allowbreak{}photos} z pod\l{}\k{a}czonym Railway Volume zamontowanym pod \texttt{/data/\allowbreak{}photos}). Dzi\k{e}ki temu pliki graficzne s\k{a} odizolowane od kontenera aplikacji i zachowywane mi\k{e}dzy kolejnymi wdro\.zeniami.
+\end{enumerate}
+
+\subsection{Aplikacja mobilna (Flutter)}
+
+\subsubsection{Uruchomienie deweloperskie}
+
+\begin{enumerate}[leftmargin=1.6cm]
+    \item \textbf{Konfiguracja kluczy} -- utworzenie pliku \'srodowiskowego \texttt{.env} w katalogu g\l{}\'ownym projektu ze zmienn\k{a} wskazuj\k{a}c\k{a} adres serwera backendowego:
+\end{enumerate}
+
+\begin{lstlisting}[language=bash, caption=Zawartosc pliku .env, numbers=none]
+API_BASE_URL=http://<ADRES_IP_SERWERA>:8080
+\end{lstlisting}
+
+\begin{enumerate}[leftmargin=1.6cm, start=2]
+    \item \textbf{Pobranie zale\.zno\'sci} -- instalacja paczek mened\.zerem pakiet\'ow Flutter:
+\end{enumerate}
+
+\begin{lstlisting}[language=bash, numbers=none]
+flutter pub get
+\end{lstlisting}
+
+\begin{enumerate}[leftmargin=1.6cm, start=3]
+    \item \textbf{Generowanie kodu} -- przetworzenie plik\'ow generuj\k{a}cych t\l{}umaczenia oraz serializatory modeli:
+\end{enumerate}
+
+\begin{lstlisting}[language=bash, numbers=none]
+dart run build_runner build -d
+\end{lstlisting}
+
+\begin{enumerate}[leftmargin=1.6cm, start=4]
+    \item \textbf{Rozruch} -- kompilacja w trybie \textit{Just-In-Time} na emulatorze lub fizycznym urz\k{a}dzeniu:
+\end{enumerate}
+
+\begin{lstlisting}[language=bash, numbers=none]
+flutter run
+\end{lstlisting}
+
+\subsubsection{Budowa pakietu produkcyjnego (APK)}
+
+Do dystrybucji wymagane jest zbudowanie pakietu \textit{Android Package Kit} (APK) metod\k{a} \textit{Ahead-of-Time} (AOT):
+
+\begin{lstlisting}[language=bash, numbers=none]
+flutter build apk --release
+\end{lstlisting}
+
+Gotowy plik binarny znajduje si\k{e} pod \'scie\.zk\k{a} \texttt{build/\allowbreak{}app/\allowbreak{}outputs/\allowbreak{}flutter-apk/\allowbreak{}app-release.\allowbreak{}apk}. Plik nale\.zy skopiowa\'c na urz\k{a}dzenie z systemem Android i potwierdzi\'c zgod\k{e} na instalacj\k{e}. Warunkiem korzystania ze wszystkich funkcji jest dost\k{e}pny z poziomu urz\k{a}dzenia serwer API.
+
+\subsection{Aplikacja webowa (React)}
+
+\subsubsection{Wymagania wst\k{e}pne}
+
+\begin{itemize}[label=\textbullet, leftmargin=1.5cm]
+    \item Node.js w wersji 18 lub nowszej,
+    \item npm w wersji 9 lub nowszej,
+    \item dost\k{e}p do internetu (backend dzia\l{}a na Railway).
+\end{itemize}
+
+\subsubsection{Uruchomienie lokalne}
+
+\begin{enumerate}[leftmargin=1.6cm]
+    \item Sklonuj repozytorium i przejd\'z do katalogu projektu:
+\end{enumerate}
+
+\begin{lstlisting}[language=bash, numbers=none]
+git clone https://github.com/SX2V/S6-ZMP-System-indentyfikacji-flory-Web.git
+cd S6-ZMP-System-indentyfikacji-flory-Web
+\end{lstlisting}
+
+\begin{enumerate}[leftmargin=1.6cm, start=2]
+    \item Zainstaluj zale\.zno\'sci:
+\end{enumerate}
+
+\begin{lstlisting}[language=bash, numbers=none]
+npm install
+\end{lstlisting}
+
+\begin{enumerate}[leftmargin=1.6cm, start=3]
+    \item Uruchom serwer deweloperski:
+\end{enumerate}
+
+\begin{lstlisting}[language=bash, numbers=none]
+npm run dev
+\end{lstlisting}
+
+\begin{enumerate}[leftmargin=1.6cm, start=4]
+    \item Otw\'orz przegl\k{a}dark\k{e} pod adresem \texttt{http://localhost:5173}.
+\end{enumerate}
+
+Serwer deweloperski Vite automatycznie konfiguruje proxy, kt\'ore przekierowuje \.z\k{a}dania z \texttt{/api/*} na backend, omijaj\k{a}c ograniczenia CORS przegl\k{a}darki.
+
+\subsubsection{Uruchomienie produkcyjne (Vercel)}
+
+Aplikacja jest wdro\.zona i dost\k{e}pna pod adresem:
+
+\begin{center}
+\url{https://s6-zmp-system-indentyfikacji-flory-snowy.vercel.app}
+\end{center}
+
+Wdro\.zenie odbywa si\k{e} automatycznie przy ka\.zdym pushu na ga\l{}\k{a}\'z \texttt{main} repozytorium GitHub. Vercel wykrywa projekt jako aplikacj\k{e} Vite i wykonuje:
+
+\begin{lstlisting}[language=bash, numbers=none]
+npm run build   # tsc -b && vite build
+\end{lstlisting}
+
+Wynikowy katalog \texttt{dist/} jest serwowany jako statyczna strona. Testy uruchamia si\k{e} poleceniem \texttt{npm run test}.
+
+\subsection{Aplikacja desktopowa (WPF)}
+
+\subsubsection{Wymagania wst\k{e}pne}
+
+\begin{itemize}[label=\textbullet, leftmargin=1.5cm]
+    \item system Windows,
+    \item .NET 8 SDK,
+    \item dost\k{e}p do dzia\l{}aj\k{a}cego serwera API (lokalnego lub zdalnego).
+\end{itemize}
+
+\subsubsection{Uruchomienie i budowa}
+
+Po sklonowaniu repozytorium i przej\'sciu do katalogu projektu nale\.zy pobra\'c zale\.zno\'sci i uruchomi\'c aplikacj\k{e}:
+
+\begin{lstlisting}[language=bash, numbers=none]
+dotnet restore
+dotnet run
+\end{lstlisting}
+
+Wersj\k{e} produkcyjn\k{a} buduje si\k{e} w konfiguracji \texttt{Release}:
+
+\begin{lstlisting}[language=bash, numbers=none]
+dotnet build -c Release
+\end{lstlisting}
+
+Lokalna baza SQLite oraz katalog cache zdj\k{e}\'c tworzone s\k{a} automatycznie przy pierwszym uruchomieniu, co umo\.zliwia natychmiastow\k{a} prac\k{e} w trybie offline.
+
+% =========================================================================
+\section{Wnioski projektowe}
+% =========================================================================
+
+\subsection{Modu\l{} serwerowy (Maksym Wilk)}
+
+Realizacja modu\l{}u serwerowego potwierdzi\l{}a warto\'s\'c klasycznej architektury warstwowej oraz konsekwentnego oddzielenia obiekt\'ow DTO od encji bazodanowych. Taki podzia\l{} u\l{}atwi\l{} rozw\'oj projektu i ograniczy\l{} ryzyko niezamierzonego ujawnienia struktury bazy w odpowiedziach API. Organizacja kodu w pakiety dziedzinowe znacz\k{a}co u\l{}atwi\l{}a orientacj\k{e} w rozrastaj\k{a}cym si\k{e} repozytorium.
+
+Przyj\k{e}ty model bezpiecze\'nstwa, oparty o bezstanowe uwierzytelnianie JWT z rotacj\k{a} refresh token\'ow i wykrywaniem ich ponownego u\.zycia, okaza\l{} si\k{e} zarazem bezpieczny i wygodny w utrzymaniu. Rozr\'o\.znianie typ\'ow token\'ow przez deklaracj\k{e} \texttt{purpose} skutecznie wyeliminowa\l{}o ca\l{}\k{a} klas\k{e} b\l{}\k{e}d\'ow zwi\k{a}zanych z u\.zyciem tokenu w niew\l{}a\'sciwym kontek\'scie.
+
+Szczeg\'olnie cennym do\'swiadczeniem by\l{}o oparcie test\'ow integracyjnych o Testcontainers i realn\k{a} baz\k{e} PostgreSQL. Testy uruchamiane na rzeczywistym silniku bazodanowym da\l{}y znacznie wi\k{e}ksz\k{a} pewno\'s\'c poprawno\'sci ni\.z atrapy, a pr\'og pokrycia 80\,\% weryfikowany w procesie CI wymusi\l{} dyscyplin\k{e} testow\k{a} przez ca\l{}y okres projektu. Bezpieczna degradacja integracji zewn\k{e}trznych (PlantNet, Brevo, FCM) potwierdzi\l{}a, \.ze traktowanie us\l{}ug zewn\k{e}trznych jako zawodnych z za\l{}o\.zenia prowadzi do stabilniejszego systemu.
+
+\subsection{Aplikacja mobilna (Adam Rudziewicz)}
+
+Praca z frameworkiem Flutter unaoczni\l{}a warto\'s\'c rygorystycznego trzymania si\k{e} wzorc\'ow \textbf{Clean Architecture} oraz \textbf{BLoC}. Cho\'c pocz\k{a}tkowy pr\'og wej\'scia w tak restrykcyjn\k{a} abstrakcj\k{e} (odseparowanie ka\.zdego interfejsu od implementacji i wi\k{a}zanie ich poprzez centralny \textit{Service Locator} -- GetIt) wydawa\l{} si\k{e} czasoch\l{}onny, d\l{}ugofalowo zysk by\l{} bezsporny. Ochroni\l{}o to projekt przed degradacj\k{a} struktury i powstawaniem architektury typu \textit{Spaghetti Code}.
+
+Utrzymanie zasad \textbf{SOLID} okaza\l{}o si\k{e} trafn\k{a} decyzj\k{a}, co przejawi\l{}o si\k{e} w wysokiej \l{}atwo\'sci wdra\.zania test\'ow jednostkowych. Mo\.zliwo\'s\'c bezinwazyjnej podmiany wstrzykni\k{e}tych interfejs\'ow (\textit{Mocking}) pozwoli\l{}a zasymulowa\'c ci\k{e}\.zkie b\l{}\k{e}dy sieciowe i napisa\'c 33 testy logiki. P\l{}ynne wdro\.zenie trybu offline z u\.zyciem bazy Hive potwierdzi\l{}o, \.ze szczelne oddzielenie warstwy danych od interfejsu gwarantuje tolerancj\k{e} na utrat\k{e} po\l{}\k{a}czenia (\textit{Graceful Degradation}). Ekosystem Fluttera dowi\'od\l{} przy tym wysokiej wydajno\'sci renderingu, dobrze odwzorowuj\k{a}c wytyczne \textit{Material Design}.
+
+\subsection{Aplikacja webowa (Szymon Rogula)}
+
+Praca nad modu\l{}em frontendowym w architekturze React/TypeScript pozwoli\l{}a sformu\l{}owa\'c istotne wnioski dotycz\k{a}ce projektowania nowoczesnych aplikacji typu SPA. Zastosowanie wzorca \textbf{Observer} poprzez mechanizm \textit{CustomEvents} do obs\l{}ugi internacjonalizacji okaza\l{}o si\k{e} trafne -- pozwoli\l{}o unikn\k{a}\'c narzutu zwi\k{a}zanego z globalnym kontekstem Reacta przy zachowaniu pe\l{}nej reaktywno\'sci interfejsu.
+
+Integracja \textbf{React Hook Form} z silnikiem walidacji \textbf{Zod} w \'srodowisku wieloj\k{e}zycznym unaoczni\l{}a wyzwania zwi\k{a}zane z cyklem \.zycia komponent\'ow; konieczno\'s\'c manualnego od\'swie\.zania walidacji po zmianie j\k{e}zyka doprowadzi\l{}a do stworzenia stabilnego systemu obs\l{}ugi formularzy. Kluczowym aspektem bezpiecze\'nstwa by\l{}o wdro\.zenie interceptor\'ow \textbf{Axios}: mechanizm \textit{Silent Refresh Token} w warstwie \textbf{Proxy} zapewni\l{} pe\l{}n\k{a} separacj\k{e} logiki autoryzacyjnej od warstwy prezentacji. Dyscyplina typowania wprowadzona przez \textbf{TypeScript} w trybie \textit{strict} okaza\l{}a si\k{e} bezcenna podczas integracji z zewn\k{e}trznym API, a \textbf{Vite} zapewni\l{} optymalne parametry \l{}adowania aplikacji.
+
+\subsection{Aplikacja desktopowa (Sebastian Waga)}
+
+Realizacja panelu administracyjnego w technologii WPF potwierdzi\l{}a, \.ze konsekwentne stosowanie wzorca \textbf{MVVM} (wspartego bibliotek\k{a} CommunityToolkit.Mvvm) prowadzi do czytelnego, \l{}atwego w utrzymaniu i testowaniu kodu. Wyra\'zne oddzielenie widok\'ow od logiki w ViewModelach u\l{}atwi\l{}o rozw\'oj aplikacji oraz pisanie test\'ow jednostkowych dla us\l{}ug.
+
+Najwi\k{e}kszym wyzwaniem, a zarazem najwarto\'sciowszym do\'swiadczeniem, by\l{}o wdro\.zenie pe\l{}nego trybu offline. Po\l{}\k{a}czenie lokalnej bazy SQLite, kolejki synchronizacji oraz monitorowania po\l{}\k{a}czenia przez \texttt{InternetService} pozwoli\l{}o p\l{}ynnie prze\l{}\k{a}cza\'c aplikacj\k{e} mi\k{e}dzy trybem online i offline bez utraty danych. Lokalny cache zdj\k{e}\'c z automatycznym usuwaniem starszych plik\'ow ograniczy\l{} liczb\k{e} zapyta\'n do serwera. Zastosowanie wzorc\'ow Repository, Singleton, Command i Observer uporz\k{a}dkowa\l{}o dost\k{e}p do danych oraz obs\l{}ug\k{e} akcji u\.zytkownika, czyni\k{a}c projekt gotowym do dalszej rozbudowy.
+
+% =========================================================================
+\section{Podsumowanie}
+% =========================================================================
+
+Zrealizowany system e-zielnik stanowi kompletne, wielomodu\l{}owe rozwi\k{a}zanie do identyfikacji i katalogowania flory. Centralny modu\l{} REST API pokrywa wszystkie wymagania funkcjonalne warstwy serwerowej, a trzy aplikacje klienckie -- mobilna, webowa i desktopowa -- udost\k{e}pniaj\k{a} te funkcje u\.zytkownikom na r\'o\.znych platformach.
+
+Pod wzgl\k{e}dem technicznym projekt opiera si\k{e} na aktualnych technologiach (Java 21 i Spring Boot, Flutter, React/TypeScript, .NET 8) oraz sprawdzonych wzorcach projektowych. We wszystkich modu\l{}ach po\l{}o\.zono nacisk na bezpiecze\'nstwo (bezstanowe uwierzytelnianie JWT, rotacja token\'ow, kontrola dost\k{e}pu), jako\'s\'c kodu (testy jednostkowe i integracyjne) oraz dobre praktyki in\.zynierii oprogramowania. Przygotowano tak\.ze pe\l{}n\k{a} \'scie\.zk\k{e} uruchomienia ka\.zdego modu\l{}u: lokaln\k{a}, kontenerow\k{a} oraz zdaln\k{a}. Przyj\k{e}ty podzia\l{} prac na platformy docelowe, ze wsp\'oln\k{a} warstw\k{a} integruj\k{a}c\k{a} w postaci REST API, pozwoli\l{} czteroosobowemu zespo\l{}owi sprawnie zrealizowa\'c sp\'ojny i kompletny system.
+
+\end{document}
